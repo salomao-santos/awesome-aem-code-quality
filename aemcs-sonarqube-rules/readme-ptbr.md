@@ -31,9 +31,20 @@ Todo este repositório foi **organizado e desenvolvido** usando a poderosa combi
 
 Esta abordagem garante **100% de precisão** com padrões oficiais Adobe e **atualizações automáticas** quando novas regras são publicadas.
 
+## 📸 Guia Visual de Configuração
+
+As imagens abaixo mostram o processo real de configuração no Kiro IDE:
+
+| Passo | Descrição | Guia Visual |
+|-------|-----------|-------------|
+| **1** | Executar prompt no Kiro IDE | ![Execução do Prompt](assets/images/config-mcp-aem-doc/01-configuration-mcp-aem-documentation-using-prompt-in-kiro-ide.png) |
+| **2** | MCP Server configurado com sucesso | ![Resultado da Configuração](assets/images/config-mcp-aem-doc/02-configuration-mcp-aem-documentation.png) |
+
 ## 🚀 Configuração em 3 Passos
 
 ### Passo 1: Configurar MCP AEM Documentation
+
+![Configuração usando Prompt do Kiro IDE](assets/images/config-mcp-aem-doc/01-configuration-mcp-aem-documentation-using-prompt-in-kiro-ide.png)
 
 ```bash
 run #prompt-configure-aem-documentation-mcp.md
@@ -44,6 +55,8 @@ run #prompt-configure-aem-documentation-mcp.md
 - ✅ Verifica pré-requisitos (Docker)
 - ✅ Disponibiliza ferramentas de busca na documentação AEM
 - ✅ Configura acesso às 127 regras SonarQube oficiais
+
+![Resultado da Configuração MCP](assets/images/config-mcp-aem-doc/02-configuration-mcp-aem-documentation.png)
 
 ### Passo 2: Usar MCP para Gerar Regras
 
