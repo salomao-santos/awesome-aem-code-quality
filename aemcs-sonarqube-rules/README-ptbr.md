@@ -47,7 +47,7 @@ As imagens abaixo mostram o processo real de configuração no Kiro IDE:
 ![Configuração usando Prompt do Kiro IDE](assets/images/config-mcp-aem-doc/01-configuration-mcp-aem-documentation-using-prompt-in-kiro-ide.png)
 
 ```bash
-run /ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation-mcp.md
+run /ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation-mcp-ptbr.md
 ```
 
 **O que faz:**
@@ -61,7 +61,7 @@ run /ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation
 ### Passo 2: Usar MCP para Gerar Regras
 
 ```bash
-run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube.md
+run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube-ptbr.md
 ```
 
 **O que faz:**
@@ -73,7 +73,7 @@ run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarq
 ### Passo 3: Configurar Agent Hook
 
 ```bash
-run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube.md
+run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube-ptbr.md
 ```
 
 **O que faz:**
