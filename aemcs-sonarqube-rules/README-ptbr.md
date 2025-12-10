@@ -47,7 +47,7 @@ As imagens abaixo mostram o processo real de configuração no Kiro IDE:
 ![Configuração usando Prompt do Kiro IDE](assets/images/config-mcp-aem-doc/01-configuration-mcp-aem-documentation-using-prompt-in-kiro-ide.png)
 
 ```bash
-run #.kiro/prompts/ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation-mcp.md
+run /ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation-mcp.md
 ```
 
 **O que faz:**
@@ -61,7 +61,7 @@ run #.kiro/prompts/ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem
 ### Passo 2: Usar MCP para Gerar Regras
 
 ```bash
-run #.kiro/prompts/ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube.md
+run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube.md
 ```
 
 **O que faz:**
@@ -73,7 +73,7 @@ run #.kiro/prompts/ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-a
 ### Passo 3: Configurar Agent Hook
 
 ```bash
-run #.kiro/prompts/ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube.md
+run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube.md
 ```
 
 **O que faz:**
@@ -104,8 +104,4 @@ Após executar os 3 passos, teste a configuração:
 
 - **Documentação Completa**: Veja `aemcs-sonarqube-rules.md` para lista detalhada
 - **Arquivo de Teste**: `example-test.java` com 20 violações intencionais
-- **Repositório Principal**: [awesome-aem-code-quality](https://github.com/salomao-santos/awesome-aem-code-quality)
-
----
-
-*Testado com SonarQube 9.9 e Cloud Manager 2025.2.0*
+- **Repositório Principal**: 
