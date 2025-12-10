@@ -30,6 +30,7 @@ public class ExampleCompliant {
         try (ResourceResolver resolver = factory.getResourceResolver(null)) {
             // fazer algo com o resolver
             // será fechado automaticamente
+             // será fechado automaticamente
         }
     }
 
