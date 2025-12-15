@@ -582,10 +582,10 @@ echo "=== VALIDAÇÃO CONCLUÍDA ==="
 
 ```bash
 # Criar diretório steering se não existir
-mkdir -p [projeto].kiro/steering
+mkdir -p [projeto]/.kiro/steering
 
 # Copiar arquivo para steering
-cp "output-aemcs-sonarqube-rules/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md" ".kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md"
+cp "output-aemcs-sonarqube-rules/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md" "[projeto]/.kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md"
 
 echo "✅ Arquivo copiado para steering com sucesso!"
 echo "📁 Localização: [projeto].kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md"

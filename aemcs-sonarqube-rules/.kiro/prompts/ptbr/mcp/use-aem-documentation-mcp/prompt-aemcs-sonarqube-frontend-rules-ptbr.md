@@ -1,4 +1,4 @@
-# 🚨 PROMPT: Gerar Regras Frontend & Template - AEM SonarQube
+# 🚨 PROMPT: Gerar Regras Frontend - AEM SonarQube
 
 ## ⚠️ ATENÇÃO: USO OBRIGATÓRIO DO MCP AEM DOCUMENTATION
 
@@ -7,61 +7,68 @@
 **VOCÊ DEVE**:
 1. ✅ Configurar o MCP AEM Documentation **ANTES** de qualquer outra ação
 2. ✅ Ler a documentação oficial via MCP **POR PARTES** (documentos grandes > 1000 linhas)
-3. ✅ **FILTRAR APENAS REGRAS FRONTEND/TEMPLATE** durante a leitura
+3. ✅ **FILTRAR APENAS REGRAS FRONTEND** durante a leitura
 4. ✅ Comparar com CSVs e **ADICIONAR REGRAS FRONTEND NOVAS**
 5. ✅ **GERAR APENAS 1 ARQUIVO**: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md`
+6. ✅ **VALIDAR ARQUIVO GERADO** com critérios específicos
+7. ✅ **COPIAR PARA STEERING**: `.kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md`
 
 **🚫 NÃO É PERMITIDO**:
 - ❌ Pular o uso do MCP
 - ❌ Usar apenas os arquivos CSV
-- ❌ Incluir regras que não são Frontend/Template
+- ❌ Incluir regras que não são Frontend/UI
 - ❌ Gerar múltiplos arquivos
+- ❌ Finalizar sem validação e cópia para steering
 
 ---
 
 ## 🎯 Objetivo
 
-Gerar **1 documento técnico específico** sobre as regras frontend e templates de qualidade de código do Cloud Manager para Adobe Experience Manager as a Cloud Service (AEMaaCS).
+Gerar **1 documento técnico específico** sobre as regras Frontend, UI/UX e componentes de qualidade de código do Cloud Manager para Adobe Experience Manager as a Cloud Service (AEMaaCS).
 
 ## 📁 ARQUIVO DE OUTPUT
 
 **Arquivo**: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md`
-- **Regras**: `ClassicUI*`, `Component*`, `Static*`, `Legacy*`, `Clientlib*`, Cloud Service compatibility para UI
-- **Foco**: Templates, componentes UI, JavaScript, CSS, Touch UI vs Classic UI, clientlibs
-- **Tecnologias**: `.js`, `.ts`, `.jsx`, `.tsx`, `.html`, `.jsp`, `.jspx`, `.htl`
+- **Regras**: Frontend, UI, UX, Componentes, Client-side
+- **Foco**: HTML, CSS, JavaScript, HTL/Sightly, Client Libraries, Componentes AEM
+- **Tecnologias**: `.html`, `.css`, `.js`, `.htl`, `.jsp`, clientlibs, componentes
 - **Mínimo**: 200 linhas
 
 ---
 
-## 🔍 CRITÉRIOS DE FILTRO FRONTEND & TEMPLATE
+## 🔍 CRITÉRIOS DE FILTRO FRONTEND
 
 ### ✅ **INCLUIR APENAS SE**:
 
 #### 📂 **Prefixos Frontend Exatos**:
-- `ClassicUIAuthoringMode` (modo de autoria Classic UI)
-- `ComponentWithOnlyClassicUIDialog` (componentes com dialog Classic UI)
-- `StaticTemplateUsage` (uso de templates estáticos)
-- `LegacyFoundationComponentUsage` (componentes Foundation legados)
-- `ClientlibProxyResource` (recursos clientlib proxy)
-- `CloudServiceIncompatibleWorkflowProcess` (se relacionado a UI)
+- `ClassicUI:*` (regras Classic UI)
+- `Component:*` (regras de componentes)
+- `ClientLibs:*` (regras Client Libraries)
+- `HTL:*` (regras HTL/Sightly)
+- `UI:*` (regras de interface)
+- `Frontend:*` (regras frontend)
 
-#### 🔑 **Palavras-chave Frontend**:
-- UI, template, component, clientlib, dialog
-- classic, touch, foundation, authoring, editor
-- JavaScript, CSS, HTL, JSP, frontend
-- workflow (se relacionado a UI), asset (se UI)
+#### 🔑 **Palavras-chave Frontend & UI**:
+- html, css, javascript, js, clientlibs
+- htl, sightly, jsp, components, ui
+- frontend, client-side, browser, dom
+- responsive, accessibility, wcag, aria
+- touch-ui, coral, granite, foundation
 
 #### 💻 **Tecnologias Frontend**:
-- .js, .ts, .jsx, .tsx (JavaScript/TypeScript)
-- .html, .jsp, .jspx, .htl (templates)
-- .css, .scss, .less (estilos)
-- Componentes AEM, dialogs, clientlibs
+- .html (páginas HTML)
+- .css (estilos CSS)
+- .js (JavaScript)
+- .htl (HTL/Sightly templates)
+- .jsp (JSP pages)
+- clientlibs (Client Libraries)
+- components (Componentes AEM)
 
 ### ❌ **EXCLUIR SEMPRE**:
-- Regras Java puras (`java:S*`, `AEM Rules:*` com código Java)
-- Regras de Dispatcher (`DOTRules:*`)
-- Regras de Content estrutural (`BannedPath`, `PackageOverlaps`)
-- Regras Oak Index (`OakIndex*`)
+- Regras Java (`java:S*`, `AEM Rules:*`, `CQRules:*`)
+- Regras Dispatcher (`DOTRules:Disp-*`, `DOTRules:Httpd-*`)
+- Regras de Content (`BannedPath`, `PackageOverlaps`)
+- Regras de Infrastructure/Backend
 
 ---
 
@@ -81,7 +88,7 @@ mcp_aem_documentation_mcp_server_read_documentation(
 ```
 
 2. **Para cada parte lida**:
-   - **FILTRAR** apenas regras Frontend/Template (prefixos + palavras-chave)
+   - **FILTRAR** apenas regras Frontend (prefixos + palavras-chave)
    - **ESCREVER** imediatamente no arquivo Frontend
    - **IGNORAR** regras de outras categorias
 
@@ -92,19 +99,18 @@ mcp_aem_documentation_mcp_server_read_documentation(
 ```markdown
 # Para cada parte lida do MCP:
 
-1. IDENTIFICAR regras Frontend/Template:
-   - Prefixo ClassicUI* → INCLUIR
-   - Prefixo Component* → INCLUIR  
-   - Prefixo Static* → INCLUIR
-   - Prefixo Legacy* → INCLUIR
-   - Prefixo Clientlib* → INCLUIR
-   - Palavra-chave "UI", "template" → INCLUIR
+1. IDENTIFICAR regras Frontend:
+   - Prefixo ClassicUI:* → INCLUIR
+   - Prefixo Component:* → INCLUIR  
+   - Prefixo ClientLibs:* → INCLUIR
+   - Prefixo HTL:* → INCLUIR
+   - Palavra-chave "html", "css", "javascript" → INCLUIR
    - Prefixo java:S* → EXCLUIR
-   - Prefixo DOTRules:* → EXCLUIR
+   - Prefixo DOTRules:Disp-* → EXCLUIR
 
 2. ESCREVER no arquivo Frontend:
-   - Apenas regras identificadas como Frontend/Template
-   - Com exemplos de código HTML/JS/HTL
+   - Apenas regras identificadas como Frontend
+   - Com exemplos de código HTML/CSS/JS/HTL
    - Com descrições detalhadas
 
 3. CONTINUAR para próxima parte
@@ -144,22 +150,21 @@ mcp_aem_documentation_mcp_server_read_documentation(
 | Atributo | Valor |
 |----------|-------|
 | **Key** | [rule_key] |
-| **Type** | [Code Smell/Bug] |
-| **Severity** | [Blocker/Major/Minor] |
-| **Tags** | aem, cloud-service-compatibility |
-| **Since** | [versão se disponível] |
+| **Type** | [Code Smell] |
+| **Severity** | [Major/Minor] |
+| **Tags** | beta, frontend, ui |
 
 **Descrição**: [descrição do CSV ou inferida]
 
-**Categoria**: Frontend & Template
+**Categoria**: Frontend & UI
 **Fonte**: CSV (não encontrada na documentação oficial)
 
 #### Exemplo de Código (se aplicável):
 ```html
-<!-- Non-compliant template -->
+<!-- Non-compliant code -->
 [exemplo se disponível]
 
-<!-- Compliant template -->  
+<!-- Compliant code -->  
 [exemplo se disponível]
 ```
 ```
@@ -171,11 +176,11 @@ mcp_aem_documentation_mcp_server_read_documentation(
 ### Arquivo: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md`
 
 ```markdown
-# Regras Frontend e Templates - AEM Cloud Service
+# Regras Frontend, UI/UX e Componentes - AEM Cloud Service
 
 **Última atualização:** [Data atual]
-**Categoria:** Frontend & Template Rules
-**Tecnologias:** `.js`, `.ts`, `.jsx`, `.tsx`, `.html`, `.jsp`, `.jspx`, `.htl`
+**Categoria:** Frontend, UI/UX & Components Rules
+**Tecnologias:** `.html`, `.css`, `.js`, `.htl`, `.jsp`, clientlibs, componentes
 **Fontes:**
 - Adobe Experience League (documentação oficial via MCP)
 - CodeQuality-rules-latest-AMS-2024-12-0.csv
@@ -183,173 +188,251 @@ mcp_aem_documentation_mcp_server_read_documentation(
 
 ---
 
-## 📊 Estatísticas Frontend & Template
+## 📊 Estatísticas Frontend, UI/UX & Components
 
 | Tipo | Quantidade |
 |------|------------|
-| **Total Regras Frontend** | XXX |
-| **Regras UI** | XX |
-| **Regras Template** | XX |
-| **Regras Clientlib** | XX |
-| **Regras Compatibilidade** | XX |
+| **Total Regras Frontend & UI** | XXX |
+| **Regras Classic UI** | XX |
+| **Regras Componentes** | XX |
+| **Regras Client Libraries** | XX |
+| **Regras HTL/Sightly** | XX |
 
 ### Por Severidade
 
 | Severidade | Quantidade |
 |------------|------------|
-| **Blocker** | XX |
 | **Major** | XX |
 | **Minor** | XX |
 
 ---
 
-## 🎨 Regras de Interface (UI)
+## 🎨 Regras Classic UI (ClassicUI:*)
 
-### ClassicUIAuthoringMode - Default Authoring Mode Should Not Be Classic UI
+### ClassicUI:AvoidClassicUI
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | ClassicUIAuthoringMode |
+| **Key** | ClassicUI:AvoidClassicUI |
 | **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2020.5.0 |
+| **Severity** | Major |
+| **Tags** | beta, ui, classic-ui |
 
-**Descrição**: A configuração OSGi `com.day.cq.wcm.core.impl.AuthoringUIModeServiceImpl` define o modo de autoria padrão no AEM. Como a Classic UI foi deprecada desde o AEM 6.4, um problema é levantado quando o modo de autoria padrão é configurado para Classic UI.
+**Descrição**: Evitar o uso da Classic UI do AEM, pois foi descontinuada em favor da Touch UI.
+
+#### Código Non-compliant:
+```html
+<!-- Classic UI components -->
+<div class="cq-editbar">
+  <div class="cq-editbar-cell cq-editbar-cell-left">
+    <a href="#" class="cq-editbar-button">Edit</a>
+  </div>
+</div>
+```
+
+#### Código Compliant:
+```html
+<!-- Touch UI components -->
+<div data-sly-resource="${resource @ resourceType='foundation/components/parsys'}">
+</div>
+```
+
+### ClassicUI:AvoidExtJSWidgets
+
+[Detalhes da regra com exemplos]
+
+[... todas as regras Classic UI ...]
+
+---
+
+## 🧩 Regras de Componentes (Component:*)
+
+### Component:AvoidHardcodedPaths
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | Component:AvoidHardcodedPaths |
+| **Type** | Code Smell |
+| **Severity** | Major |
+| **Tags** | beta, components, paths |
+
+**Descrição**: Evitar caminhos hardcoded em componentes AEM para garantir portabilidade entre ambientes.
+
+#### Código Non-compliant:
+```htl
+<div data-sly-use.model="com.example.MyModel">
+  <img src="/content/dam/mysite/images/logo.png" alt="Logo">
+</div>
+```
+
+#### Código Compliant:
+```htl
+<div data-sly-use.model="com.example.MyModel">
+  <img src="${model.logoPath}" alt="Logo">
+</div>
+```
+
+[... todas as regras de componentes ...]
+
+---
+
+## 📚 Regras Client Libraries (ClientLibs:*)
+
+### ClientLibs:AvoidEmbedding
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | ClientLibs:AvoidEmbedding |
+| **Type** | Code Smell |
+| **Severity** | Major |
+| **Tags** | beta, clientlibs, performance |
+
+**Descrição**: Evitar embedding excessivo de client libraries para melhorar performance.
 
 #### Configuração Non-compliant:
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
-    jcr:primaryType="sling:OsgiConfig"
-    AuthoringUIModeService.default.authoring.ui.mode="CLASSIC"/>
+<!-- .content.xml -->
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0"
+    jcr:primaryType="cq:ClientLibraryFolder"
+    categories="[mysite.all]"
+    embed="[mysite.base,mysite.components,mysite.utils,mysite.vendor]"/>
 ```
 
 #### Configuração Compliant:
 ```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
-    jcr:primaryType="sling:OsgiConfig"
-    AuthoringUIModeService.default.authoring.ui.mode="TOUCH"/>
+<!-- .content.xml -->
+<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0"
+    jcr:primaryType="cq:ClientLibraryFolder"
+    categories="[mysite.all]"
+    dependencies="[mysite.base,mysite.components]"/>
 ```
 
-### ComponentWithOnlyClassicUIDialog - Components Should Have Touch UI Dialogs
-
-[Detalhes da regra com exemplos]
-
-[... todas as regras de UI ...]
+[... todas as regras Client Libraries ...]
 
 ---
 
-## 📄 Regras de Templates
+## 🔧 Regras HTL/Sightly (HTL:*)
 
-### StaticTemplateUsage - Usage of Static Templates is Discouraged
+### HTL:AvoidScriptlets
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | StaticTemplateUsage |
+| **Key** | HTL:AvoidScriptlets |
 | **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2021.2.0 |
+| **Severity** | Major |
+| **Tags** | beta, htl, sightly |
 
-**Descrição**: Embora o uso de templates estáticos tenha sido historicamente comum em projetos AEM, templates editáveis são altamente recomendados pois fornecem mais flexibilidade e suportam recursos adicionais não presentes em templates estáticos.
+**Descrição**: Evitar uso de scriptlets Java em templates HTL, preferindo Use-API ou Sling Models.
 
-#### Template Estático Non-compliant:
-```html
-<%@include file="/libs/foundation/global.jsp"%>
-<%@page session="false" %>
-<html>
-<head>
-    <title>Static Template</title>
-</head>
-<body>
-    <div>Static content</div>
-</body>
-</html>
+#### Código Non-compliant:
+```htl
+<%
+  String title = properties.get("jcr:title", "");
+  if (title.isEmpty()) {
+    title = "Default Title";
+  }
+%>
+<h1><%= title %></h1>
 ```
 
-#### Template Editável Compliant:
-```html
-<template data-sly-template.page="${@ wcmmode}">
-    <div class="page" data-sly-use.page="com.example.PageModel">
-        <div data-sly-resource="${'content' @ resourceType='wcm/foundation/components/parsys'}"></div>
-    </div>
-</template>
+#### Código Compliant:
+```htl
+<div data-sly-use.model="com.example.TitleModel">
+  <h1>${model.title || 'Default Title'}</h1>
+</div>
 ```
 
-### LegacyFoundationComponentUsage - Usage of Legacy Foundation Components is Discouraged
-
-[Detalhes da regra com exemplos]
-
-[... todas as regras de templates ...]
+[... todas as regras HTL ...]
 
 ---
 
-## 📚 Regras Clientlib
+## 🎯 Regras de Acessibilidade & UX
 
-### ClientlibProxyResource - Resources in Proxy-Enabled Client Libraries should be in resources folder
+### Accessibility:RequireAltText
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | ClientlibProxyResource |
-| **Type** | Bug |
-| **Severity** | Minor |
-| **Tags** | aem |
-| **Since** | Version 2021.2.0 |
+| **Categoria** | Accessibility & UX |
+| **Tecnologia** | HTML, WCAG |
+| **Foco** | Acessibilidade, SEO, UX |
 
-**Descrição**: Bibliotecas de cliente AEM podem conter recursos estáticos como imagens e fontes. Ao usar bibliotecas de cliente com proxy, esses recursos estáticos devem estar em uma pasta filha chamada `resources`.
+**Descrição**: Garantir que todas as imagens tenham texto alternativo apropriado para acessibilidade.
 
-#### Estrutura Non-compliant:
-```
-+ apps
-  + projectA
-    + clientlib
-      - allowProxy=true
-      + images
-        + myimage.jpg
+#### Código Non-compliant:
+```html
+<img src="/content/dam/mysite/hero.jpg">
+<img src="/content/dam/mysite/icon.png" alt="">
 ```
 
-#### Estrutura Compliant:
-```
-+ apps
-  + projectA
-    + clientlib
-      - allowProxy=true
-      + resources
-        + myimage.jpg
+#### Código Compliant:
+```html
+<img src="/content/dam/mysite/hero.jpg" alt="Hero image showing our main product">
+<img src="/content/dam/mysite/icon.png" alt="Company logo" role="img">
 ```
 
-[... todas as regras clientlib ...]
+[... outras regras de acessibilidade ...]
 
 ---
 
-## ☁️ Regras Compatibilidade Cloud Service UI
+## 📱 Regras Responsive & Performance
 
-### CloudServiceIncompatibleWorkflowProcess - Usage of Cloud Service Incompatible Workflow Processes
+### Performance:OptimizeImages
 
-[Detalhes da regra se relacionada a UI]
+| Atributo | Valor |
+|----------|-------|
+| **Categoria** | Performance & Responsive |
+| **Tecnologia** | HTML, CSS, Images |
+| **Foco** | Performance, Mobile, Core Web Vitals |
 
-[... todas as regras de compatibilidade UI ...]
+**Descrição**: Otimizar imagens para diferentes dispositivos e resoluções usando AEM Dynamic Media.
+
+#### Código Non-compliant:
+```html
+<img src="/content/dam/mysite/large-image.jpg" width="100%">
+```
+
+#### Código Compliant:
+```html
+<picture>
+  <source media="(max-width: 768px)" 
+          srcset="/content/dam/mysite/large-image.jpg?width=768&quality=85">
+  <source media="(max-width: 1200px)" 
+          srcset="/content/dam/mysite/large-image.jpg?width=1200&quality=85">
+  <img src="/content/dam/mysite/large-image.jpg?width=1920&quality=85" 
+       alt="Descriptive text" loading="lazy">
+</picture>
+```
+
+[... outras regras de performance ...]
 
 ---
 
-## 📚 Referências Frontend & Template
+## 📚 Referências Frontend, UI/UX & Components
 
 ### Documentação Oficial
-- [Page Templates - Editable](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/platform/templates/page-templates-editable)
-- [Using Client-Side Libraries](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/clientlibs)
-- [HTL Specification](https://experienceleague.adobe.com/en/docs/experience-manager-htl/content/specification)
+- [HTL/Sightly Specification](https://experienceleague.adobe.com/en/docs/experience-manager-htl/content/specification)
+- [AEM Core Components](https://experienceleague.adobe.com/en/docs/experience-manager-core-components/using/introduction)
+- [Client-Side Libraries](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/clientlibs)
+- [Touch UI Development](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/touch-ui-concepts)
+- [AEM Responsive Design](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/sites/developing/responsive)
 
-### Ferramentas
-- [AEM Core Components](https://github.com/adobe/aem-core-wcm-components)
-- [AEM Modernization Tools](https://opensource.adobe.com/aem-modernize-tools/)
+### Ferramentas Frontend
+- [AEM Developer Tools](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/tools/developer-mode)
+- [HTL REPL](https://github.com/adobe/htl-repl)
+- [AEM Brackets Extension](https://github.com/adobe/brackets-aem)
+- [Core Components Library](https://www.aemcomponents.dev/)
+
+### Padrões & Guidelines
+- [AEM Style System](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/sites/authoring/siteandpage/style-system)
+- [Editable Templates](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/platform/templates/page-templates-editable)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [AEM Accessibility Checklist](https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/compliance/accessibility/quick-guide-wcag)
 
 ---
 
 *Última atualização: [Data atual]*
 *Gerado via MCP AEM Documentation + análise de CSVs*
-*Categoria: Frontend & Template Rules*
+*Categoria: Frontend, UI/UX & Components Rules*
 ```
 
 ---
@@ -372,12 +455,156 @@ mcp_aem_documentation_mcp_server_read_documentation(
 - [ ] Regras Frontend adicionais escritas no arquivo
 - [ ] Mudanças Frontend documentadas
 
-### VALIDAÇÃO FINAL:
-- [ ] Arquivo Frontend criado: `aemcs-sonarqube-frontend-rules-ptbr.md`
-- [ ] Arquivo tem >200 linhas
-- [ ] Apenas regras Frontend/Template incluídas
-- [ ] Estatísticas Frontend corretas
-- [ ] Exemplos de código incluídos
+### FASE 3 - Validação e Cópia para Steering:
+- [ ] Arquivo Frontend criado e validado
+- [ ] Arquivo copiado para `.kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md`
+
+---
+
+## 🔍 VALIDAÇÃO PÓS-GERAÇÃO
+
+### 🚨 VALIDAÇÃO OBRIGATÓRIA APÓS GERAR O ARQUIVO
+
+**APÓS GERAR O ARQUIVO DE OUTPUT, VOCÊ DEVE EXECUTAR ESTA VALIDAÇÃO:**
+
+```bash
+echo "=== VALIDAÇÃO FINAL DO ARQUIVO FRONTEND GERADO ==="
+
+# 1. Verificar se arquivo foi criado
+FILE_PATH="output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md"
+if [ -f "$FILE_PATH" ]; then
+    echo "✅ Arquivo criado com sucesso: $FILE_PATH"
+else
+    echo "❌ ERRO CRÍTICO: Arquivo não foi criado!"
+    exit 1
+fi
+
+# 2. Verificar tamanho do arquivo
+LINES=$(wc -l < "$FILE_PATH")
+echo "📊 Arquivo contém: $LINES linhas"
+if [ "$LINES" -gt 200 ]; then
+    echo "✅ Tamanho adequado (>200 linhas)"
+else
+    echo "❌ ERRO: Arquivo muito pequeno (<200 linhas)"
+fi
+
+# 3. Verificar conteúdo específico Frontend
+echo "=== VERIFICAÇÃO DE CONTEÚDO FRONTEND ==="
+CLASSIC_RULES=$(grep -c "ClassicUI:" "$FILE_PATH" 2>/dev/null || echo "0")
+COMPONENT_RULES=$(grep -c "Component:" "$FILE_PATH" 2>/dev/null || echo "0")
+CLIENTLIB_RULES=$(grep -c "ClientLibs:" "$FILE_PATH" 2>/dev/null || echo "0")
+HTL_RULES=$(grep -c "HTL:" "$FILE_PATH" 2>/dev/null || echo "0")
+
+echo "📋 Regras Classic UI (ClassicUI:*): $CLASSIC_RULES"
+echo "📋 Regras Componentes (Component:*): $COMPONENT_RULES"
+echo "📋 Regras Client Libraries (ClientLibs:*): $CLIENTLIB_RULES"
+echo "📋 Regras HTL (HTL:*): $HTL_RULES"
+
+# 4. Verificar filtro aplicado corretamente
+echo "=== VERIFICAÇÃO DE FILTRO ==="
+JAVA_RULES=$(grep -c "java:S" "$FILE_PATH" 2>/dev/null || echo "0")
+DISP_RULES=$(grep -c "DOTRules:Disp-" "$FILE_PATH" 2>/dev/null || echo "0")
+BANNED_RULES=$(grep -c "BannedPath" "$FILE_PATH" 2>/dev/null || echo "0")
+
+if [ "$JAVA_RULES" -eq 0 ] && [ "$DISP_RULES" -eq 0 ] && [ "$BANNED_RULES" -eq 0 ]; then
+    echo "✅ Filtro aplicado corretamente - apenas regras Frontend"
+else
+    echo "❌ ERRO: Filtro não aplicado - contém regras não-Frontend"
+    echo "   - Regras Java (java:S*): $JAVA_RULES"
+    echo "   - Regras Dispatcher (DOTRules:Disp-*): $DISP_RULES"
+    echo "   - Regras Content (BannedPath): $BANNED_RULES"
+fi
+
+# 5. Verificar estrutura do documento
+echo "=== VERIFICAÇÃO DE ESTRUTURA ==="
+if grep -q "# Regras Frontend, UI/UX e Componentes" "$FILE_PATH"; then
+    echo "✅ Título principal encontrado"
+else
+    echo "❌ ERRO: Título principal não encontrado"
+fi
+
+if grep -q "## 📊 Estatísticas Frontend" "$FILE_PATH"; then
+    echo "✅ Seção de estatísticas encontrada"
+else
+    echo "❌ ERRO: Seção de estatísticas não encontrada"
+fi
+
+# 6. Verificar exemplos de código
+EXAMPLES=$(grep -c "```html\|```css\|```javascript\|```htl" "$FILE_PATH" 2>/dev/null || echo "0")
+echo "📝 Exemplos de código encontrados: $EXAMPLES"
+if [ "$EXAMPLES" -gt 5 ]; then
+    echo "✅ Exemplos suficientes de código"
+else
+    echo "⚠️  AVISO: Poucos exemplos de código ($EXAMPLES)"
+fi
+
+echo "=== VALIDAÇÃO CONCLUÍDA ==="
+```
+
+---
+
+## 📁 CÓPIA PARA STEERING
+
+### 🚨 APÓS VALIDAÇÃO APROVADA, COPIAR ARQUIVO PARA STEERING
+
+**EXECUTAR APÓS VALIDAÇÃO BEM-SUCEDIDA:**
+
+```bash
+echo "=== INICIANDO CÓPIA PARA STEERING ==="
+
+# 1. Verificar se arquivo original existe e foi validado
+FILE_PATH="output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md"
+if [ ! -f "$FILE_PATH" ]; then
+    echo "❌ ERRO: Arquivo original não encontrado para cópia!"
+    exit 1
+fi
+
+# 2. Criar diretório steering se não existir
+STEERING_DIR=".kiro/steering"
+if [ ! -d "$STEERING_DIR" ]; then
+    echo "📁 Criando diretório steering: $STEERING_DIR"
+    mkdir -p "$STEERING_DIR"
+else
+    echo "📁 Diretório steering já existe: $STEERING_DIR"
+fi
+
+# 3. Definir caminho de destino
+STEERING_FILE="$STEERING_DIR/output-aemcs-sonarqube-frontend-rules-ptbr.md"
+
+# 4. Copiar arquivo para steering
+echo "📋 Copiando arquivo para steering..."
+cp "$FILE_PATH" "$STEERING_FILE"
+
+# 5. Verificar se cópia foi bem-sucedida
+if [ -f "$STEERING_FILE" ]; then
+    echo "✅ Arquivo copiado com sucesso para steering!"
+    echo "📁 Localização: $STEERING_FILE"
+    
+    # Verificar tamanho do arquivo copiado
+    STEERING_LINES=$(wc -l < "$STEERING_FILE")
+    echo "📊 Arquivo steering contém: $STEERING_LINES linhas"
+    
+    # Verificar se o conteúdo é idêntico
+    if cmp -s "$FILE_PATH" "$STEERING_FILE"; then
+        echo "✅ Conteúdo idêntico confirmado"
+    else
+        echo "⚠️  AVISO: Diferença detectada entre arquivos"
+    fi
+else
+    echo "❌ ERRO: Falha ao copiar arquivo para steering!"
+    exit 1
+fi
+
+echo "=== CÓPIA PARA STEERING CONCLUÍDA ==="
+```
+
+### ✅ CHECKLIST FINAL COMPLETO:
+
+- [ ] **Arquivo gerado**: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md`
+- [ ] **Validação executada**: Arquivo aprovado em todos os critérios
+- [ ] **Diretório steering criado**: `.kiro/steering/` (se não existia)
+- [ ] **Arquivo copiado para steering**: `.kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md`
+- [ ] **Cópia verificada**: Conteúdo idêntico confirmado
 
 ---
 
@@ -385,82 +612,13 @@ mcp_aem_documentation_mcp_server_read_documentation(
 
 | Métrica Frontend | Mínimo Esperado |
 |------------------|-----------------|
-| **Regras Frontend documentadas** | 10-20 regras |
-| **Linhas arquivo Frontend** | 200+ |
-| **Regras UI** | 3-5 regras |
-| **Regras Template** | 3-5 regras |
-| **Regras Clientlib** | 2-3 regras |
-| **Regras Compatibilidade** | 2-7 regras |
-| **Exemplos de código** | 5+ |
-
----
-
-## 🔐 VALIDAÇÃO FINAL FRONTEND
-
-### 🚨 VALIDAÇÃO OBRIGATÓRIA:
-
-```bash
-# Executar antes de finalizar
-
-echo "=== VALIDAÇÃO ARQUIVO FRONTEND ==="
-
-# 1. Verificar arquivo existe
-if [ -f "output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md" ]; then
-    echo "✅ Arquivo Frontend existe"
-else
-    echo "❌ FALHA: Arquivo Frontend não existe"
-    exit 1
-fi
-
-# 2. Verificar tamanho mínimo
-FRONTEND_LINES=$(wc -l < output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md)
-echo "Arquivo Frontend: $FRONTEND_LINES linhas"
-[ "$FRONTEND_LINES" -gt 200 ] && echo "✅ Tamanho OK" || echo "❌ FALHA: <200 linhas"
-
-# 3. Verificar conteúdo Frontend
-echo "=== VERIFICAÇÃO DE CONTEÚDO ==="
-grep -c "ClassicUI" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md && echo "✅ Regras ClassicUI* encontradas"
-grep -c "Component" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md && echo "✅ Regras Component* encontradas"
-grep -c "Static" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md && echo "✅ Regras Static* encontradas"
-grep -c "Legacy" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md && echo "✅ Regras Legacy* encontradas"
-grep -c "Clientlib" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md && echo "✅ Regras Clientlib* encontradas"
-
-# 4. Verificar que NÃO tem regras de outras categorias
-echo "=== VERIFICAÇÃO DE FILTRO ==="
-if grep -q "java:S" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md; then
-    echo "❌ FALHA: Contém regras Java (java:S*)"
-else
-    echo "✅ Filtro OK: Sem regras Java"
-fi
-
-if grep -q "DOTRules:" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md; then
-    echo "❌ FALHA: Contém regras Dispatcher (DOTRules:*)"
-else
-    echo "✅ Filtro OK: Sem regras Dispatcher"
-fi
-
-if grep -q "BannedPath" output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md; then
-    echo "❌ FALHA: Contém regras Content (BannedPath)"
-else
-    echo "✅ Filtro OK: Sem regras Content"
-fi
-```
-
-### ✅ CRITÉRIOS DE SUCESSO:
-
-- ✅ Arquivo `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md` existe
-- ✅ Arquivo tem >200 linhas
-- ✅ Contém apenas regras Frontend/Template
-- ✅ NÃO contém regras de outras categorias
-- ✅ Estatísticas Frontend corretas
-- ✅ Exemplos de código incluídos
-
-### ❌ FALHA SE:
-
-- ❌ Arquivo não existe ou tem <200 linhas
-- ❌ Contém regras não-Frontend (java:S*, DOTRules:*, BannedPath)
-- ❌ Faltam regras Frontend importantes
-- ❌ Estatísticas incorretas
+| **Regras Frontend & UI documentadas** | 15-25 regras |
+| **Linhas arquivo Frontend & UI** | 200+ |
+| **Regras ClassicUI*** | 3-8 regras |
+| **Regras Component*** | 5-10 regras |
+| **Regras ClientLibs*** | 2-5 regras |
+| **Regras HTL*** | 3-8 regras |
+| **Exemplos de código** | 10+ |
 
 ---
 
@@ -469,7 +627,7 @@ fi
 **AO FINALIZAR, REPORTAR:**
 
 ```
-=== RELATÓRIO FRONTEND & TEMPLATE RULES ===
+=== RELATÓRIO FRONTEND & UI/UX RULES ===
 
 FASE 1 - MCP com Filtro Frontend:
 ✅ Partes lidas: [X] partes
@@ -482,18 +640,48 @@ FASE 2 - CSV com Filtro Frontend:
 ✅ Regras Frontend novas (não no MCP): [X] regras
 ✅ Mudanças Frontend identificadas: [X] mudanças
 
-RESULTADO FINAL:
-✅ Arquivo: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md
+FASE 3 - Validação e Cópia:
+✅ Arquivo validado: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-frontend-rules-ptbr.md
 ✅ Linhas: [X] linhas
+✅ Arquivo copiado para: .kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md
+
+RESULTADO FINAL:
 ✅ Regras Frontend: [X] regras
-✅ Regras UI: [X] regras
-✅ Regras Template: [X] regras  
-✅ Regras Clientlib: [X] regras
-✅ Regras Compatibilidade: [X] regras
+✅ Regras ClassicUI:*: [X] regras
+✅ Regras Component:*: [X] regras  
+✅ Regras ClientLibs:*: [X] regras
+✅ Regras HTL:*: [X] regras
 
 FILTRO APLICADO:
-✅ Incluídas: ClassicUI*, Component*, Static*, Legacy*, Clientlib*
-✅ Excluídas: java:S*, DOTRules:*, BannedPath, OakIndex*
+✅ Incluídas: ClassicUI:*, Component:*, ClientLibs:*, HTL:*, UI:*
+✅ Excluídas: java:S*, DOTRules:*, BannedPath, AEM Rules:*
+
+STEERING:
+✅ Arquivo disponível em: .kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md
+✅ Pronto para uso como contexto em futuras sessões
 
 STATUS: [SUCESSO/FALHA]
 ```
+
+---
+
+## 🎯 INSTRUÇÕES FINAIS
+
+### 🚨 SEQUÊNCIA OBRIGATÓRIA DE EXECUÇÃO:
+
+1. **CONFIGURAR MCP** - Ativar AEM Documentation MCP
+2. **EXECUTAR FASE 1** - Leitura MCP com filtro Frontend
+3. **EXECUTAR FASE 2** - Comparação CSV com filtro Frontend  
+4. **EXECUTAR VALIDAÇÃO** - Validar arquivo gerado
+5. **EXECUTAR CÓPIA** - Copiar para `.kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md`
+6. **REPORTAR RESULTADO** - Resumo executivo final
+
+### ✅ CRITÉRIOS DE SUCESSO FINAL:
+
+- ✅ Arquivo original existe e tem >200 linhas
+- ✅ Contém apenas regras Frontend (ClassicUI:*, Component:*, ClientLibs:*, HTL:*)
+- ✅ NÃO contém regras de outras categorias
+- ✅ Arquivo copiado para steering com sucesso
+- ✅ Steering file disponível para uso futuro
+
+**🎯 OBJETIVO FINAL: Arquivo `.kiro/steering/output-aemcs-sonarqube-frontend-rules-ptbr.md` criado e pronto para uso como contexto em futuras sessões do Kiro.**
