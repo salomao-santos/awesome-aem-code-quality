@@ -483,3 +483,155 @@ FILTRO APLICADO:
 
 STATUS: [SUCESSO/FALHA]
 ```
+
+---
+
+## 🔍 VALIDAÇÃO PÓS-GERAÇÃO
+
+### 🚨 VALIDAÇÃO OBRIGATÓRIA APÓS GERAR O ARQUIVO
+
+**APÓS GERAR O ARQUIVO DE OUTPUT, VOCÊ DEVE EXECUTAR ESTA VALIDAÇÃO:**
+
+```bash
+echo "=== VALIDAÇÃO FINAL DO ARQUIVO GERADO ==="
+
+# 1. Verificar se arquivo foi criado
+FILE_PATH="output-aemcs-sonarqube-rules/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md"
+if [ -f "$FILE_PATH" ]; then
+    echo "✅ Arquivo criado com sucesso: $FILE_PATH"
+else
+    echo "❌ ERRO CRÍTICO: Arquivo não foi criado!"
+    exit 1
+fi
+
+# 2. Verificar tamanho do arquivo
+LINES=$(wc -l < "$FILE_PATH")
+echo "📊 Arquivo contém: $LINES linhas"
+if [ "$LINES" -gt 250 ]; then
+    echo "✅ Tamanho adequado (>250 linhas)"
+else
+    echo "❌ ERRO: Arquivo muito pequeno (<250 linhas)"
+fi
+
+# 3. Verificar conteúdo específico Dispatcher
+echo "=== VERIFICAÇÃO DE CONTEÚDO DISPATCHER ==="
+DISP_RULES=$(grep -c "DOTRules:Disp-" "$FILE_PATH" 2>/dev/null || echo "0")
+HTTPD_RULES=$(grep -c "DOTRules:Httpd-" "$FILE_PATH" 2>/dev/null || echo "0")
+SYNTAX_RULES=$(grep -c "DOTRules:Syntax" "$FILE_PATH" 2>/dev/null || echo "0")
+
+echo "📋 Regras Dispatcher (DOTRules:Disp-*): $DISP_RULES"
+echo "📋 Regras Apache (DOTRules:Httpd-*): $HTTPD_RULES"
+echo "📋 Regras Sintaxe (DOTRules:Syntax*): $SYNTAX_RULES"
+
+# 4. Verificar filtro aplicado corretamente
+echo "=== VERIFICAÇÃO DE FILTRO ==="
+JAVA_RULES=$(grep -c "java:S" "$FILE_PATH" 2>/dev/null || echo "0")
+BANNED_RULES=$(grep -c "BannedPath" "$FILE_PATH" 2>/dev/null || echo "0")
+UI_RULES=$(grep -c "ClassicUI" "$FILE_PATH" 2>/dev/null || echo "0")
+
+if [ "$JAVA_RULES" -eq 0 ] && [ "$BANNED_RULES" -eq 0 ] && [ "$UI_RULES" -eq 0 ]; then
+    echo "✅ Filtro aplicado corretamente - apenas regras Dispatcher"
+else
+    echo "❌ ERRO: Filtro não aplicado - contém regras não-Dispatcher"
+    echo "   - Regras Java (java:S*): $JAVA_RULES"
+    echo "   - Regras Content (BannedPath): $BANNED_RULES"
+    echo "   - Regras UI (ClassicUI*): $UI_RULES"
+fi
+
+# 5. Verificar estrutura do documento
+echo "=== VERIFICAÇÃO DE ESTRUTURA ==="
+if grep -q "# Regras Dispatcher, CDN Fastly e Infraestrutura" "$FILE_PATH"; then
+    echo "✅ Título principal encontrado"
+else
+    echo "❌ ERRO: Título principal não encontrado"
+fi
+
+if grep -q "## 📊 Estatísticas Dispatcher" "$FILE_PATH"; then
+    echo "✅ Seção de estatísticas encontrada"
+else
+    echo "❌ ERRO: Seção de estatísticas não encontrada"
+fi
+
+# 6. Verificar exemplos de configuração
+EXAMPLES=$(grep -c "```apache\|```vcl\|```conf" "$FILE_PATH" 2>/dev/null || echo "0")
+echo "📝 Exemplos de configuração encontrados: $EXAMPLES"
+if [ "$EXAMPLES" -gt 5 ]; then
+    echo "✅ Exemplos suficientes de configuração"
+else
+    echo "⚠️  AVISO: Poucos exemplos de configuração ($EXAMPLES)"
+fi
+
+echo "=== VALIDAÇÃO CONCLUÍDA ==="
+```
+
+### ✅ CRITÉRIOS DE APROVAÇÃO:
+
+- ✅ Arquivo existe e tem >250 linhas
+- ✅ Contém regras Dispatcher (DOTRules:Disp-*, DOTRules:Httpd-*, DOTRules:Syntax*)
+- ✅ NÃO contém regras de outras categorias (java:S*, BannedPath, ClassicUI*)
+- ✅ Estrutura do documento está completa
+- ✅ Contém exemplos de configuração (.any, .conf, .vcl)
+
+---
+
+## 📁 CÓPIA PARA STEERING
+
+### 🚨 APÓS VALIDAÇÃO APROVADA, COPIAR ARQUIVO PARA STEERING no Workspace
+
+**EXECUTAR APÓS VALIDAÇÃO BEM-SUCEDIDA:**
+
+```bash
+# Criar diretório steering se não existir
+mkdir -p [projeto].kiro/steering
+
+# Copiar arquivo para steering
+cp "output-aemcs-sonarqube-rules/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md" ".kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md"
+
+echo "✅ Arquivo copiado para steering com sucesso!"
+echo "📁 Localização: [projeto].kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md"
+```
+
+### ✅ CHECKLIST FINAL:
+
+- [ ] **Arquivo gerado**: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md`
+- [ ] **Validação executada**: Arquivo aprovado em todos os critérios
+- [ ] **Arquivo copiado para steering**: `.kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md`
+
+---
+
+## 📊 RESUMO EXECUTIVO DISPATCHER
+
+**AO FINALIZAR, REPORTAR:**
+
+```
+=== RELATÓRIO DISPATCHER & INFRASTRUCTURE RULES ===
+
+FASE 1 - MCP com Filtro Dispatcher:
+✅ Partes lidas: [X] partes
+✅ Regras Dispatcher extraídas: [X] regras
+✅ Regras não-Dispatcher ignoradas: [X] regras
+✅ Exemplos configuração obtidos: [X] exemplos
+
+FASE 2 - CSV com Filtro Dispatcher:
+✅ Regras Dispatcher no CSV: [X] regras
+✅ Regras Dispatcher novas (não no MCP): [X] regras
+✅ Mudanças Dispatcher identificadas: [X] mudanças
+
+RESULTADO FINAL:
+✅ Arquivo: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md
+✅ Linhas: [X] linhas
+✅ Regras Dispatcher: [X] regras
+✅ Regras Disp-*: [X] regras
+✅ Regras Httpd-*: [X] regras  
+✅ Regras Sintaxe: [X] regras
+
+FILTRO APLICADO:
+✅ Incluídas: DOTRules:Disp-*, DOTRules:Httpd-*, DOTRules:Syntax*
+✅ Excluídas: java:S*, BannedPath, ClassicUI*, AEM Rules:*
+
+VALIDAÇÃO:
+✅ Arquivo validado e aprovado
+✅ Arquivo copiado para steering: .kiro/steering/output-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md
+
+STATUS: [SUCESSO/FALHA]
+```

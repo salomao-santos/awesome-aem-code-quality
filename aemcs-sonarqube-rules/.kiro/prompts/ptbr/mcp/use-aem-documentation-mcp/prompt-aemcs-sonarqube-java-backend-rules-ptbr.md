@@ -486,7 +486,7 @@ sonar.exclusions=**/target/**,**/node_modules/**
 - [ ] Guia de implementação incluído
 - [ ] **VALIDAÇÃO AUTOMÁTICA EXECUTADA** (script de validação completo)
 - [ ] **VALIDAÇÃO PASSOU** (todos os critérios de qualidade atendidos)
-- [ ] **ARQUIVO COPIADO PARA STEERING** (`.kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md`)
+- [ ] **ARQUIVO COPIADO PARA STEERING** (`[projeto].kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md`)
 - [ ] **CÓPIA VERIFICADA** (integridade e tamanho confirmados)
 - [ ] **DISPONÍVEL NO CONTEXTO KIRO** (steering rules ativas para uso)
 
