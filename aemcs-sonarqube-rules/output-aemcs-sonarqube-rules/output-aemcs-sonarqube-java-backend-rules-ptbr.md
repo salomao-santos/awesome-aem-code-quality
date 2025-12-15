@@ -1,204 +1,261 @@
-# Regras Java Backend e SonarQube para AEM Cloud Service
-
-**Última atualização:** 14 de Dezembro de 2025
-**Categoria:** Java Backend Development Rules
-**Tecnologias:** `.java`, `.class`, `.jar`, OSGi, Sling, JCR
-**Fontes:**
-- Adobe Experience League (documentação oficial via MCP)
-- CodeQuality-rules-latest-AMS-2024-12-0.csv
-- CodeQuality-rules-latest-AMS.csv
-
----
-
-## 📊 Estatísticas Java Backend
-
-| Tipo | Quantidade |
-|------|------------|
-| **Total Regras Java** | 89 |
-| **Vulnerabilities** | 13 |
-| **Security Hotspots** | 6 |
-| **Bugs** | 32 |
-| **Code Smells** | 38 |
-
-### Por Severidade
-
-| Severidade | Quantidade |
-|------------|------------|
-| **Blocker** | 8 |
-| **Critical** | 15 |
-| **Major** | 41 |
-| **Minor** | 23 |
-| **Info** | 2 |
-
-### Por Framework/Tecnologia
-
-| Framework | Regras |
-|-----------|--------|
-| **Java Core** | 45 |
-| **AEM/Sling** | 18 |
-| **OSGi** | 8 |
-| **JCR/Repository** | 6 |
-| **Security** | 19 |
-| **Threading** | 12 |
-
----
-
-## 🔴 Vulnerabilidades Java (Severity: Critical/Major)
-### java:S2254 - HttpServletRequest.getRequestedSessionId() should not be used
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S2254 |
-| **Type** | Vulnerability |
-| **Severity** | Critical |
-| **Tags** | cwe, owasp-a2, sans-top25-porous |
-| **AEM Context** | Servlet Development |
-| **Old Key** | squid:S2254 |
-
-**Descrição**: O método `getRequestedSessionId()` não deve ser usado pois pode expor informações sensíveis de sessão.
-
-**Impacto no AEM**: Em servlets AEM, isso pode expor IDs de sessão em logs ou respostas, criando vulnerabilidades de segurança.
-
-#### Non-compliant code
+t code
 ```java
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.methods=GET",
-        "sling.servlet.resourceTypes=myapp/components/servlet"
-    })
-public class MyServlet extends SlingSafeMethodsServlet {
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        String sessionId = request.getRequestedSessionId(); // VULNERABLE
-        response.getWriter().write("Session: " + sessionId);
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.methods=GET",
-        "sling.servlet.resourceTypes=myapp/components/servlet"
-    })
-public class MyServlet extends SlingSafeMethodsServlet {
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            // Use session attributes instead of exposing session ID
-            String userId = (String) session.getAttribute("userId");
-            response.getWriter().write("User: " + userId);
-        }
-    }
-}
-```
-
----
-### java:S2658 - Classes should not be loaded dynamically
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S2658 |
-| **Type** | Vulnerability |
-| **Severity** | Critical |
-| **Tags** | cwe, owasp-a1 |
-| **AEM Context** | OSGi Bundle Development |
-| **Old Key** | squid:S2658 |
-
-**Descrição**: Carregar classes dinamicamente pode permitir execução de código malicioso.
-
-**Impacto no AEM**: Em ambientes OSGi, o carregamento dinâmico de classes pode comprometer a segurança do container.
-
-#### Non-compliant code
-```java
-@Component(service = MyService.class)
-public class DynamicClassLoader {
+@Component(service = AssetProcessor.class)
+public class AssetProcessor {
     
-    public void loadClass(String className) throws Exception {
-        // VULNERABLE - Dynamic class loading
-        Class<?> clazz = Class.forName(className);
-        Object instance = clazz.newInstance();
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = MyService.class)
-public class SafeClassLoader {
+    private static final Logger log = LoggerFactory.getLogger(AssetProcessor.class);
     
-    private static final Set<String> ALLOWED_CLASSES = Set.of(
-        "com.mycompany.safe.Class1",
-        "com.mycompany.safe.Class2"
-    );
-    
-    public void loadClass(String className) throws Exception {
-        if (!ALLOWED_CLASSES.contains(className)) {
-            throw new SecurityException("Class not allowed: " + className);
-        }
-        Class<?> clazz = Class.forName(className);
-        Object instance = clazz.newInstance();
-    }
-}
-```
-
----
-### java:S5445 - Insecure temporary file creation methods should not be used
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S5445 |
-| **Type** | Vulnerability |
-| **Severity** | Critical |
-| **Tags** | cwe, owasp-a9 |
-| **AEM Context** | File Processing |
-| **Old Key** | squid:S2976 |
-
-**Descrição**: Métodos inseguros de criação de arquivos temporários não devem ser usados.
-
-**Impacto no AEM**: Em processamento de assets ou workflows, arquivos temporários inseguros podem ser explorados.
-
-#### Non-compliant code
-```java
-@Component(service = FileProcessor.class)
-public class FileProcessor {
-    
-    public void processFile(InputStream input) throws IOException {
-        // VULNERABLE - Insecure temp file creation
-        File tempFile = File.createTempFile("temp", ".tmp");
-        // Process file...
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = FileProcessor.class)
-public class FileProcessor {
-    
-    public void processFile(InputStream input) throws IOException {
-        // SECURE - Proper temp file creation with restricted permissions
-        Path tempDir = Files.createTempDirectory("secure-temp");
-        Path tempFile = Files.createTempFile(tempDir, "temp", ".tmp");
-        
-        // Set restrictive permissions
-        Set<PosixFilePermission> perms = PosixFilePermissions.fromString("rw-------");
-        Files.setPosixFilePermissions(tempFile, perms);
-        
+    // Pattern 1: Log and handle (don't rethrow)
+    public void processAsset(Asset asset) {
         try {
-            // Process file...
-        } finally {
-            Files.deleteIfExists(tempFile);
-            Files.deleteIfExists(tempDir);
+            performAssetProcessing(asset);
+        } catch (Exception e) {
+            log.error("Asset processing failed for asset: {}", asset.getPath(), e);
+            // Handle the error, don't rethrow
+        }
+    }
+    
+    // Pattern 2: Transform and throw (don't log)
+    public void processAssetWithException(Asset asset) throws ProcessingException {
+        try {
+            performAssetProcessing(asset);
+        } catch (Exception e) {
+            // Transform to business exception without logging
+            throw new ProcessingException("Failed to process asset: " + asset.getPath(), e);
+        }
+    }
+}
+```
+
+### CQRules:CQBP-44—ExceptionPrintStackTrace - Do not use Exception.printStackTrace()
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | CQRules:CQBP-44—ExceptionPrintStackTrace |
+| **Type** | Code Smell |
+| **Severity** | Minor |
+| **Tags** | cqsoftwarequality |
+| **AEM Context** | Error Handling |
+
+**Descrição**: Usar `Exception.printStackTrace()` faz com que apenas o stack trace seja enviado para o stream de erro padrão, perdendo todo o contexto.
+
+**Impacto no AEM**: Em aplicação multi-thread como AEM, stack traces podem se sobrepor e causar confusão significativa.
+
+#### Non-compliant code
+```java
+@Component(service = WorkflowStep.class,
+    property = {
+        "process.label=My Workflow Step"
+    })
+public class MyWorkflowStep implements WorkflowProcess {
+    
+    @Override
+    public void execute(WorkItem workItem, WorkflowSession workflowSession, 
+                       MetaDataMap metaDataMap) throws WorkflowException {
+        try {
+            processWorkflowItem(workItem);
+        } catch (Exception e) {
+            e.printStackTrace(); // LOSES CONTEXT AND THREAD SAFETY
+        }
+    }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = WorkflowStep.class,
+    property = {
+        "process.label=My Workflow Step"
+    })
+public class MyWorkflowStep implements WorkflowProcess {
+    
+    private static final Logger log = LoggerFactory.getLogger(MyWorkflowStep.class);
+    
+    @Override
+    public void execute(WorkItem workItem, WorkflowSession workflowSession, 
+                       MetaDataMap metaDataMap) throws WorkflowException {
+        try {
+            processWorkflowItem(workItem);
+        } catch (Exception e) {
+            log.error("Workflow step failed for item: {}", workItem.getId(), e);
+            throw new WorkflowException("Processing failed", e);
         }
     }
 }
 ```
 
 ---
-### java:S5542 - Encryption algorithms should be used with secure mode and padding
+
+## 🔄 Migrações de Chaves Java (SonarQube 9.9)
+
+### Impacto da Migração squid:* → java:*
+
+A partir de **13 de Fevereiro de 2025** (Cloud Manager 2025.2.0):
+
+| Old Key (pre 2024.12.0) | New Key | Descrição | Impacto |
+|-------------------------|---------|-----------|---------|
+| squid:S2068 | java:S2068 | Hard-coded passwords | Security Hotspot |
+| squid:S2095 | java:S2095 | Resources should be closed | Resource leaks |
+| squid:S2168 | java:S2168 | Double-checked locking | Threading issues |
+| squid:S2254 | java:S2254 | HttpServletRequest.getRequestedSessionId() | Security vulnerability |
+| squid:S2658 | java:S2658 | Classes should not be loaded dynamically | Security vulnerability |
+| squid:S2276 | java:S2276 | wait() vs Thread.sleep() with locks | Threading bug |
+| squid:S2245 | java:S2245 | Pseudorandom number generators | Security hotspot |
+| squid:S2257 | java:S2257 | Non-standard cryptographic algorithms | Security hotspot |
+| squid:S2077 | java:S2077 | SQL binding mechanisms | Security hotspot |
+| squid:S2092 | java:S2092 | Cookies without secure flag | Security hotspot |
+| squid:S1989 | java:S1989 | Exceptions from servlet methods | Vulnerability |
+| squid:S2441 | java:S2441 | Non-serializable objects in HttpSession | Bug |
+| squid:S2222 | java:S2222 | Locks should be released | Bug |
+| squid:S2273 | java:S2273 | wait/notify with obvious lock | Bug |
+| squid:S2445 | java:S2445 | Synchronized on private final fields | Bug |
+| squid:S2583 | java:S2583 | Conditionally executed code | Bug |
+| squid:S2885 | java:S2885 | Non-thread-safe static fields | Bug |
+
+### Ações Necessárias:
+
+1. **Atualizar configurações SonarQube**:
+   - Revisar quality profiles
+   - Atualizar regras customizadas
+   - Verificar exclusões baseadas em chaves antigas
+
+2. **Revisar pipelines CI/CD**:
+   - Atualizar scripts que referenciam chaves antigas
+   - Verificar relatórios automatizados
+   - Atualizar dashboards de qualidade
+
+3. **Comunicação com equipes**:
+   - Informar sobre mudanças nas chaves
+   - Atualizar documentação interna
+   - Treinar equipes sobre novas chaves
+
+---
+
+## 🛠️ Guia de Implementação
+
+### Configuração SonarQube para AEM Java
+
+```properties
+# sonar-project.properties
+sonar.projectKey=my-aem-project
+sonar.projectName=My AEM Project
+sonar.projectVersion=1.0
+
+# Java configuration
+sonar.java.source=11
+sonar.java.target=11
+sonar.java.libraries=target/dependency/*.jar,core/target/classes
+
+# Source and test directories
+sonar.sources=core/src/main/java,ui.apps/src/main/content
+sonar.tests=core/src/test/java
+sonar.java.test.libraries=target/dependency/*.jar
+
+# Exclusions
+sonar.exclusions=**/target/**,**/node_modules/**,**/*.min.js
+sonar.test.exclusions=**/target/**
+
+# Coverage
+sonar.java.coveragePlugin=jacoco
+sonar.jacoco.reportPaths=target/jacoco.exec
+```
+
+### Quality Gates Recomendados para AEM Java
+
+```yaml
+# Quality Gate: AEM Java Backend
+conditions:
+  - metric: bugs
+    operator: GT
+    threshold: 0
+    
+  - metric: vulnerabilities  
+    operator: GT
+    threshold: 0
+    
+  - metric: security_hotspots_reviewed
+    operator: LT
+    threshold: 100
+    
+  - metric: code_smells
+    operator: GT
+    threshold: 50
+    
+  - metric: coverage
+    operator: LT
+    threshold: 80
+    
+  - metric: duplicated_lines_density
+    operator: GT
+    threshold: 3
+```
+
+### Configuração Maven para SonarQube
+
+```xml
+<plugin>
+    <groupId>org.sonarsource.scanner.maven</groupId>
+    <artifactId>sonar-maven-plugin</artifactId>
+    <version>3.9.1.2184</version>
+</plugin>
+
+<plugin>
+    <groupId>org.jacoco</groupId>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.7</version>
+    <executions>
+        <execution>
+            <goals>
+                <goal>prepare-agent</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+                <goal>report</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
+
+---
+
+## 📚 Referências Java Backend
+
+### Documentação Oficial AEM
+- [Custom Code Quality Rules](https://experienceleague.adobe.com/en/docs/experience-manager-cloud-manager/content/using/custom-code-quality-rules)
+- [Java Best Practices for AEM](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/dev-guidelines-bestpractices)
+- [OSGi Development Guidelines](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/deploying/configuring/configuring-osgi)
+- [Sling Development](https://sling.apache.org/documentation/development.html)
+
+### Ferramentas e Frameworks
+- [SonarQube Java Rules](https://docs.sonarsource.com/sonarqube-server/latest/)
+- [FindBugs Documentation](http://findbugs.sourceforge.net/)
+- [Apache Sling Documentation](https://sling.apache.org/)
+- [AEM Core Components](https://github.com/adobe/aem-core-wcm-components)
+
+### Exemplos de Código
+- [AEM Project Archetype](https://github.com/adobe/aem-project-archetype)
+- [AEM Guides WKND](https://github.com/adobe/aem-guides-wknd)
+- [ACS AEM Commons](https://adobe-consulting-services.github.io/acs-aem-commons/)
+
+### Segurança
+- [AEM Security Checklist](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/security/security-checklist)
+- [OWASP Java Security](https://owasp.org/www-project-top-ten/)
+- [CWE Common Weakness Enumeration](https://cwe.mitre.org/)
+
+---
+
+*Última atualização: 14 de dezembro de 2025*
+*Gerado via MCP AEM Documentation + análise de CSVs*
+*Categoria: Java Backend Development Rules*
+*Foco: AEM Cloud Service Development*
+
+## 🔧 Regras Java Adicionais do CSV
+
+### java:S5542 - Encryption algorithms should be used with secure mode and padding scheme
 
 | Atributo | Valor |
 |----------|-------|
@@ -206,23 +263,22 @@ public class FileProcessor {
 | **Type** | Vulnerability |
 | **Severity** | Critical |
 | **Tags** | cwe, owasp-a3, owasp-a6, owasp-m5, privacy, sans-top25-porous |
-| **AEM Context** | Security, Data Protection |
+| **AEM Context** | Data Encryption |
 | **Old Key** | squid:S2277 |
 
-**Descrição**: Algoritmos de criptografia devem usar modo seguro e padding adequado.
+**Descrição**: Algoritmos de criptografia devem ser usados com modo e esquema de padding seguros.
 
-**Impacto no AEM**: Dados sensíveis em repositório JCR ou configurações OSGi podem ser comprometidos.
+**Impacto no AEM**: Em armazenamento de dados sensíveis ou comunicação segura, algoritmos fracos podem expor informações.
 
 #### Non-compliant code
 ```java
 @Component(service = EncryptionService.class)
 public class EncryptionService {
     
-    public byte[] encrypt(String data) throws Exception {
-        // VULNERABLE - Insecure cipher configuration
-        Cipher cipher = Cipher.getInstance("AES");
-        SecretKeySpec key = new SecretKeySpec("mykey".getBytes(), "AES");
-        cipher.init(Cipher.ENCRYPT_MODE, key);
+    public byte[] encrypt(String data, String key) throws Exception {
+        Cipher cipher = Cipher.getInstance("AES"); // WEAK - no mode/padding specified
+        SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
         return cipher.doFinal(data.getBytes());
     }
 }
@@ -233,1148 +289,434 @@ public class EncryptionService {
 @Component(service = EncryptionService.class)
 public class EncryptionService {
     
-    public byte[] encrypt(String data) throws Exception {
-        // SECURE - Proper cipher configuration
-        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final int GCM_IV_LENGTH = 12;
+    
+    public EncryptedData encrypt(String data, SecretKey key) throws Exception {
+        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
         
-        // Generate secure key
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(256);
-        SecretKey key = keyGen.generateKey();
+        // Generate random IV
+        byte[] iv = new byte[GCM_IV_LENGTH];
+        SecureRandom.getInstanceStrong().nextBytes(iv);
+        GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv);
         
-        // Generate IV
+        cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec);
+        byte[] encryptedData = cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        
+        return new EncryptedData(encryptedData, iv);
+    }
+    
+    public static class EncryptedData {
+        private final byte[] data;
+        private final byte[] iv;
+        
+        public EncryptedData(byte[] data, byte[] iv) {
+            this.data = data;
+            this.iv = iv;
+        }
+        
+        // getters...
+    }
+}
+```
+
+### java:S5547 - Cipher algorithms should be robust
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | java:S5547 |
+| **Type** | Vulnerability |
+| **Severity** | Critical |
+| **Tags** | cwe, owasp-a3, owasp-a6, owasp-m5, privacy, sans-top25-porous |
+| **AEM Context** | Cryptographic Operations |
+| **Old Key** | squid:S2258 |
+
+**Descrição**: Algoritmos de cifra devem ser robustos e seguros contra ataques conhecidos.
+
+**Impacto no AEM**: Algoritmos fracos podem ser quebrados, expondo dados sensíveis armazenados ou transmitidos.
+
+#### Non-compliant code
+```java
+@Component(service = CryptoService.class)
+public class CryptoService {
+    
+    public String encryptPassword(String password) throws Exception {
+        Cipher cipher = Cipher.getInstance("DES"); // WEAK ALGORITHM
+        // DES is vulnerable to brute force attacks
+        return Base64.getEncoder().encodeToString(cipher.doFinal(password.getBytes()));
+    }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = CryptoService.class)
+public class CryptoService {
+    
+    private static final String ALGORITHM = "AES";
+    private static final String TRANSFORMATION = "AES/GCM/NoPadding";
+    private static final int KEY_LENGTH = 256;
+    
+    public String encryptPassword(String password, SecretKey key) throws Exception {
+        Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+        
         byte[] iv = new byte[12];
         SecureRandom.getInstanceStrong().nextBytes(iv);
-        GCMParameterSpec gcmSpec = new GCMParameterSpec(128, iv);
+        GCMParameterSpec spec = new GCMParameterSpec(128, iv);
         
-        cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec);
-        return cipher.doFinal(data.getBytes(StandardCharsets.UTF_8));
+        cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+        byte[] encrypted = cipher.doFinal(password.getBytes(StandardCharsets.UTF_8));
+        
+        // Combine IV and encrypted data
+        byte[] result = new byte[iv.length + encrypted.length];
+        System.arraycopy(iv, 0, result, 0, iv.length);
+        System.arraycopy(encrypted, 0, result, iv.length, encrypted.length);
+        
+        return Base64.getEncoder().encodeToString(result);
+    }
+    
+    public SecretKey generateKey() throws NoSuchAlgorithmException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+        keyGenerator.init(KEY_LENGTH);
+        return keyGenerator.generateKey();
     }
 }
 ```
 
----
-### CQRules:CWE-134 - Don't use format strings that may be externally-controlled
+### java:S1989 - Exceptions should not be thrown from servlet methods
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | CQRules:CWE-134 |
+| **Key** | java:S1989 |
 | **Type** | Vulnerability |
-| **Severity** | Major |
-| **Tags** | cqsecurity |
+| **Severity** | Minor |
+| **Tags** | cert, cwe, error-handling, owasp-a3 |
 | **AEM Context** | Servlet Development |
-| **Since** | Version 2018.4.0 |
+| **Old Key** | squid:S1989 |
 
-**Descrição**: Usar uma string de formato de uma fonte externa pode expor a aplicação a ataques de negação de serviço.
+**Descrição**: Exceções não devem ser lançadas de métodos de servlet pois podem expor informações sensíveis.
 
-**Impacto no AEM**: Parâmetros de requisição ou conteúdo gerado pelo usuário podem ser explorados em servlets AEM.
+**Impacto no AEM**: Exceções não tratadas podem expor stack traces com informações do sistema para usuários finais.
 
 #### Non-compliant code
 ```java
 @Component(service = Servlet.class,
     property = {
         "sling.servlet.methods=POST",
-        "sling.servlet.resourceTypes=myapp/components/formatter"
+        "sling.servlet.resourceTypes=myapp/components/form"
     })
-public class FormatterServlet extends SlingAllMethodsServlet {
+public class FormServlet extends SlingAllMethodsServlet {
     
     @Override
-    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        String messageFormat = request.getParameter("messageFormat");
-        // VULNERABLE - External format string
-        String result = String.format(messageFormat, "some text");
-        request.getResource().getValueMap().put("formatted", result);
-        response.sendStatus(HttpServletResponse.SC_OK);
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.methods=POST",
-        "sling.servlet.resourceTypes=myapp/components/formatter"
-    })
-public class FormatterServlet extends SlingAllMethodsServlet {
-    
-    private static final Map<String, String> ALLOWED_FORMATS = Map.of(
-        "simple", "Message: %s",
-        "detailed", "Detailed message: %s at %s"
-    );
-    
-    @Override
-    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        String formatType = request.getParameter("formatType");
-        String messageFormat = ALLOWED_FORMATS.get(formatType);
+    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws ServletException, IOException {
         
-        if (messageFormat != null) {
-            String result = String.format(messageFormat, "some text", new Date());
-            request.getResource().getValueMap().put("formatted", result);
+        String data = request.getParameter("data");
+        processData(data); // MAY THROW UNCAUGHT EXCEPTION
+    }
+    
+    private void processData(String data) throws ProcessingException {
+        if (data == null) {
+            throw new ProcessingException("Data is null"); // EXPOSED TO USER
         }
-        response.sendStatus(HttpServletResponse.SC_OK);
-    }
-}
-```
-
----
-### CQRules:CWE-676 - Use of Potentially Dangerous Function
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | CQRules:CWE-676 |
-| **Type** | Vulnerability |
-| **Severity** | Major |
-| **Tags** | cqsecurity |
-| **AEM Context** | Threading, OSGi Services |
-| **Since** | Version 2018.4.0 |
-
-**Descrição**: Os métodos `Thread.stop()` e `Thread.interrupt()` podem produzir problemas difíceis de reproduzir e vulnerabilidades de segurança.
-
-**Impacto no AEM**: Em serviços OSGi e workflows, uso inadequado de threading pode causar instabilidade.
-
-#### Non-compliant code
-```java
-@Component(service = BackgroundProcessor.class)
-public class BackgroundProcessor implements Runnable {
-    private Thread thread;
-
-    @Activate
-    public void start() {
-        thread = new Thread(this);
-        thread.start();
-    }
-
-    @Deactivate
-    public void stop() {
-        thread.stop();  // UNSAFE!
-    }
-
-    public void run() {
-        while (true) {
-            processWorkflowItems();
-        }
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = BackgroundProcessor.class)
-public class BackgroundProcessor implements Runnable {
-    private Thread thread;
-    private volatile boolean keepRunning = true;
-
-    @Activate
-    public void start() {
-        thread = new Thread(this);
-        thread.start();
-    }
-
-    @Deactivate
-    public void stop() {
-        keepRunning = false;
-        if (thread != null) {
-            thread.interrupt();
-            try {
-                thread.join(5000); // Wait up to 5 seconds
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-    }
-
-    public void run() {
-        while (keepRunning && !Thread.currentThread().isInterrupted()) {
-            try {
-                processWorkflowItems();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
-            }
-        }
-    }
-}
-```
-
----
-## 🟠 Security Hotspots Java
-
-### java:S2068 - Hard-coded passwords are security-sensitive
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S2068 |
-| **Type** | Security Hotspot |
-| **Severity** | Blocker |
-| **Tags** | cert, cwe, owasp-a2, sans-top25-porous |
-| **AEM Context** | OSGi Configuration |
-| **Old Key** | squid:S2068 |
-
-**Descrição**: Senhas hard-coded são sensíveis à segurança e devem ser evitadas.
-
-**Impacto no AEM**: Configurações OSGi com senhas hardcoded podem comprometer a segurança do sistema.
-
-#### Non-compliant code
-```java
-@Component(service = DatabaseService.class)
-@Designate(ocd = DatabaseService.Config.class)
-public class DatabaseService {
-    
-    @ObjectClassDefinition(name = "Database Service Configuration")
-    public @interface Config {
-        String username() default "admin";
-        String password() default "admin123"; // VULNERABLE - Hard-coded password
-    }
-    
-    @Activate
-    protected void activate(Config config) {
-        String password = config.password(); // Hard-coded password used
-        // Connect to database...
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = DatabaseService.class)
-@Designate(ocd = DatabaseService.Config.class)
-public class DatabaseService {
-    
-    @ObjectClassDefinition(name = "Database Service Configuration")
-    public @interface Config {
-        String username();
-        @AttributeDefinition(type = AttributeType.PASSWORD)
-        String password(); // Password field without default
-    }
-    
-    @Activate
-    protected void activate(Config config) {
-        String password = config.password(); // Password from configuration
-        if (password == null || password.isEmpty()) {
-            throw new IllegalArgumentException("Password must be configured");
-        }
-        // Connect to database...
-    }
-}
-```
-
----
-### java:S2245 - Using pseudorandom number generators (PRNGs) is security-sensitive
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S2245 |
-| **Type** | Security Hotspot |
-| **Severity** | Critical |
-| **Tags** | cert, cwe, owasp-a3 |
-| **AEM Context** | Security, Token Generation |
-| **Old Key** | squid:S2245 |
-
-**Descrição**: Usar geradores de números pseudoaleatórios (PRNGs) é sensível à segurança em contextos criptográficos.
-
-**Impacto no AEM**: Geração de tokens de segurança ou chaves de sessão pode ser comprometida.
-
-#### Non-compliant code
-```java
-@Component(service = TokenService.class)
-public class TokenService {
-    
-    private final Random random = new Random(); // VULNERABLE - Weak PRNG
-    
-    public String generateToken() {
-        byte[] tokenBytes = new byte[32];
-        random.nextBytes(tokenBytes); // Predictable randomness
-        return Base64.getEncoder().encodeToString(tokenBytes);
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = TokenService.class)
-public class TokenService {
-    
-    private final SecureRandom secureRandom;
-    
-    public TokenService() throws NoSuchAlgorithmException {
-        this.secureRandom = SecureRandom.getInstanceStrong(); // Cryptographically secure
-    }
-    
-    public String generateToken() {
-        byte[] tokenBytes = new byte[32];
-        secureRandom.nextBytes(tokenBytes); // Cryptographically secure randomness
-        return Base64.getEncoder().encodeToString(tokenBytes);
-    }
-}
-```
-
----
-## 🔵 Bugs Java - Gerenciamento de Recursos
-
-### java:S2095 - Resources should be closed
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S2095 |
-| **Type** | Bug |
-| **Severity** | Blocker |
-| **Tags** | cert, cwe, denial-of-service, leak |
-| **AEM Context** | ResourceResolver, Session, InputStream |
-| **Old Key** | squid:S2095 |
-
-**Descrição**: Recursos devem ser fechados para evitar vazamentos de memória.
-
-**Impacto no AEM**: ResourceResolver, Session JCR e streams não fechados podem esgotar recursos do sistema.
-
-#### Non-compliant code
-```java
-@Component(service = ContentService.class)
-public class ContentService {
-    
-    @Reference
-    private ResourceResolverFactory resolverFactory;
-    
-    public void processContent() throws LoginException {
-        // RESOURCE LEAK - ResourceResolver not closed
-        ResourceResolver resolver = resolverFactory.getServiceResourceResolver(null);
-        Resource resource = resolver.getResource("/content/mysite");
-        // Process resource...
-        // Missing resolver.close()
-    }
-    
-    public void readFile(String path) throws IOException {
-        // RESOURCE LEAK - InputStream not closed
-        InputStream input = new FileInputStream(path);
-        byte[] data = input.readAllBytes();
         // Process data...
-        // Missing input.close()
     }
 }
 ```
 
 #### Compliant code
 ```java
-@Component(service = ContentService.class)
-public class ContentService {
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=POST",
+        "sling.servlet.resourceTypes=myapp/components/form"
+    })
+public class FormServlet extends SlingAllMethodsServlet {
     
-    @Reference
-    private ResourceResolverFactory resolverFactory;
+    private static final Logger log = LoggerFactory.getLogger(FormServlet.class);
     
-    public void processContent() throws LoginException {
-        // PROPER - Using try-with-resources
-        try (ResourceResolver resolver = resolverFactory.getServiceResourceResolver(null)) {
-            Resource resource = resolver.getResource("/content/mysite");
-            // Process resource...
-        } // ResourceResolver automatically closed
-    }
-    
-    public void readFile(String path) throws IOException {
-        // PROPER - Using try-with-resources
-        try (InputStream input = new FileInputStream(path)) {
-            byte[] data = input.readAllBytes();
-            // Process data...
-        } // InputStream automatically closed
-    }
-}
-```
-
----
-### AEM Rules:AEM-6 - ResourceResolver should be closed in finally block
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | AEM Rules:AEM-6 |
-| **Type** | Code Smell |
-| **Severity** | Critical |
-| **Tags** | aem |
-| **AEM Context** | Resource Management |
-
-**Descrição**: ResourceResolver deve ser fechado em bloco finally para garantir liberação de recursos.
-
-**Impacto no AEM**: Vazamentos de ResourceResolver podem causar esgotamento de recursos e degradação de performance.
-
-#### Padrões recomendados para AEM:
-
-```java
-@Component(service = MyService.class)
-public class MyService {
-    
-    @Reference
-    private ResourceResolverFactory resolverFactory;
-    
-    // Padrão 1: Try-with-resources (Recomendado)
-    public void method1() throws LoginException {
-        Map<String, Object> authInfo = Collections.singletonMap(
-            ResourceResolverFactory.SUBSERVICE, "myservice");
-            
-        try (ResourceResolver resolver = resolverFactory.getServiceResourceResolver(authInfo)) {
-            // Use resolver
-            Resource resource = resolver.getResource("/content/mysite");
-            // Process resource...
-        } catch (LoginException e) {
-            log.error("Login failed", e);
-            throw e;
-        }
-    }
-    
-    // Padrão 2: Finally block (Alternativo)
-    public void method2() throws LoginException {
-        ResourceResolver resolver = null;
+    @Override
+    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws ServletException, IOException {
+        
         try {
-            Map<String, Object> authInfo = Collections.singletonMap(
-                ResourceResolverFactory.SUBSERVICE, "myservice");
-            resolver = resolverFactory.getServiceResourceResolver(authInfo);
+            String data = request.getParameter("data");
+            processData(data);
             
-            // Use resolver
-            Resource resource = resolver.getResource("/content/mysite");
-            // Process resource...
-        } catch (LoginException e) {
-            log.error("Login failed", e);
-            throw e;
-        } finally {
-            if (resolver != null && resolver.isLive()) {
-                resolver.close();
-            }
+            response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("{\"status\":\"success\"}");
+            
+        } catch (ProcessingException e) {
+            log.error("Processing failed for user request", e);
+            
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.getWriter().write("{\"status\":\"error\",\"message\":\"Invalid request\"}");
+            
+        } catch (Exception e) {
+            log.error("Unexpected error in form processing", e);
+            
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"status\":\"error\",\"message\":\"Processing failed\"}");
         }
+    }
+    
+    private void processData(String data) throws ProcessingException {
+        if (data == null || data.trim().isEmpty()) {
+            throw new ProcessingException("Invalid data provided");
+        }
+        // Process data...
     }
 }
 ```
 
----
-### CQRules:ConnectionTimeoutMechanism - HTTP requests should always have socket and connect timeouts
+### java:S2077 - SQL binding mechanisms should be used
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | CQRules:ConnectionTimeoutMechanism |
-| **Type** | Bug |
-| **Severity** | Critical |
-| **AEM Context** | HTTP Client, External Integrations |
-| **Since** | Version 2018.6.0 |
+| **Key** | java:S2077 |
+| **Type** | Security Hotspot |
+| **Severity** | Major |
+| **Tags** | cert, cwe, hibernate, owasp-a1, sans-top25-insecure, sql |
+| **AEM Context** | Database Operations |
+| **Old Key** | squid:S2077 |
 
-**Descrição**: Ao executar requisições HTTP de dentro de uma aplicação AEM, é crítico que timeouts adequados sejam configurados para evitar consumo desnecessário de threads.
+**Descrição**: Mecanismos de binding SQL devem ser usados para prevenir injeção SQL.
 
-**Impacto no AEM**: Requisições HTTP sem timeout podem bloquear threads indefinidamente, causando degradação de performance.
+**Impacto no AEM**: Em integrações com bancos de dados externos, SQL injection pode comprometer dados.
 
 #### Non-compliant code
 ```java
-@Component(service = ExternalService.class)
-public class ExternalService {
+@Component(service = UserService.class)
+public class UserService {
     
     @Reference
-    private HttpClientBuilderFactory httpClientBuilderFactory;
-
-    public void callExternalAPI() throws IOException {
-        // PROBLEMA - Sem timeouts configurados
-        HttpClientBuilder builder = httpClientBuilderFactory.newBuilder();
-        HttpClient httpClient = builder.build();
+    private DataSource dataSource;
+    
+    public User findUser(String username) throws SQLException {
+        Connection conn = dataSource.getConnection();
         
-        HttpGet request = new HttpGet("https://api.external.com/data");
-        HttpResponse response = httpClient.execute(request);
-        // Process response...
-    }
-
-    public void callWithURLConnection() throws IOException {
-        // PROBLEMA - Sem timeouts configurados
-        URL url = new URL("https://api.external.com/data");
-        URLConnection urlConnection = url.openConnection();
+        // SQL INJECTION VULNERABILITY
+        String sql = "SELECT * FROM users WHERE username = '" + username + "'";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
         
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(
-            urlConnection.getInputStream()))) {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                log.info(inputLine);
-            }
+        if (rs.next()) {
+            return new User(rs.getString("username"), rs.getString("email"));
         }
+        return null;
     }
 }
 ```
 
 #### Compliant code
 ```java
-@Component(service = ExternalService.class)
-public class ExternalService {
+@Component(service = UserService.class)
+public class UserService {
     
     @Reference
-    private HttpClientBuilderFactory httpClientBuilderFactory;
-
-    public void callExternalAPI() throws IOException {
-        // CORRETO - Com timeouts configurados
-        HttpClientBuilder builder = httpClientBuilderFactory.newBuilder();
-        RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout(5000)      // 5 seconds connect timeout
-            .setSocketTimeout(30000)      // 30 seconds socket timeout
-            .setConnectionRequestTimeout(5000) // 5 seconds connection request timeout
-            .build();
-        builder.setDefaultRequestConfig(requestConfig);
-        
-        HttpClient httpClient = builder.build();
-        HttpGet request = new HttpGet("https://api.external.com/data");
-        
-        try {
-            HttpResponse response = httpClient.execute(request);
-            // Process response...
-        } catch (SocketTimeoutException e) {
-            log.warn("Request timed out", e);
-            throw e;
-        }
-    }
-
-    public void callWithURLConnection() throws IOException {
-        // CORRETO - Com timeouts configurados
-        URL url = new URL("https://api.external.com/data");
-        URLConnection urlConnection = url.openConnection();
-        urlConnection.setConnectTimeout(5000);  // 5 seconds
-        urlConnection.setReadTimeout(30000);    // 30 seconds
-        
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(
-            urlConnection.getInputStream()))) {
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                log.info(inputLine);
-            }
-        } catch (SocketTimeoutException e) {
-            log.warn("Request timed out", e);
-            throw e;
-        }
-    }
-}
-```
-
----
-## 🧵 Regras de Threading e Concorrência
-
-### java:S2168 - Double-checked locking should not be used
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S2168 |
-| **Type** | Bug |
-| **Severity** | Blocker |
-| **Tags** | cert, cwe, multi-threading |
-| **AEM Context** | OSGi Services, Singletons |
-| **Old Key** | squid:S2168 |
-
-**Descrição**: Double-checked locking não deve ser usado pois pode causar problemas de concorrência.
-
-**Impacto no AEM**: Em serviços OSGi, padrões de inicialização lazy podem falhar em ambientes multi-thread.
-
-#### Non-compliant code
-```java
-@Component(service = CacheService.class)
-public class CacheService {
+    private DataSource dataSource;
     
-    private volatile Map<String, Object> cache;
+    private static final String FIND_USER_SQL = "SELECT username, email FROM users WHERE username = ?";
     
-    public Map<String, Object> getCache() {
-        if (cache == null) {
-            synchronized (this) {
-                if (cache == null) { // PROBLEMA - Double-checked locking
-                    cache = new ConcurrentHashMap<>();
+    public User findUser(String username) throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(FIND_USER_SQL)) {
+            
+            stmt.setString(1, username); // SAFE - parameterized query
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new User(rs.getString("username"), rs.getString("email"));
                 }
             }
         }
-        return cache;
+        return null;
+    }
+    
+    // For JCR queries in AEM, use Query API
+    public List<Resource> findContentByTitle(ResourceResolver resolver, String title) {
+        String queryString = "SELECT * FROM [cq:Page] WHERE [jcr:content/jcr:title] = $title";
+        
+        Query query = resolver.adaptTo(QueryManager.class).createQuery(queryString, Query.JCR_SQL2);
+        query.bindValue("title", resolver.getValueFactory().createValue(title));
+        
+        List<Resource> results = new ArrayList<>();
+        Iterator<Resource> resources = query.getResult().getResources();
+        while (resources.hasNext()) {
+            results.add(resources.next());
+        }
+        return results;
     }
 }
 ```
 
-#### Compliant code
-```java
-@Component(service = CacheService.class)
-public class CacheService {
-    
-    // Opção 1: Inicialização no activate
-    private Map<String, Object> cache;
-    
-    @Activate
-    protected void activate() {
-        this.cache = new ConcurrentHashMap<>();
-    }
-    
-    public Map<String, Object> getCache() {
-        return cache;
-    }
-    
-    // Opção 2: Lazy initialization holder pattern
-    private static class CacheHolder {
-        private static final Map<String, Object> INSTANCE = new ConcurrentHashMap<>();
-    }
-    
-    public Map<String, Object> getCacheLazy() {
-        return CacheHolder.INSTANCE;
-    }
-}
-```
-
----
-### AEM Rules:AEM-3 - Non-thread safe object used as a field of Servlet/Filter
+### java:S2092 - Creating cookies without the "secure" flag is security-sensitive
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | AEM Rules:AEM-3 |
-| **Type** | Bug |
-| **Severity** | Critical |
-| **Tags** | aem |
-| **AEM Context** | Servlet Development |
+| **Key** | java:S2092 |
+| **Type** | Security Hotspot |
+| **Severity** | Minor |
+| **Tags** | cwe, owasp-a3, privacy, sans-top25-porous, spring |
+| **AEM Context** | Cookie Management |
+| **Old Key** | squid:S2092 |
 
-**Descrição**: Objetos não thread-safe não devem ser usados como campos de Servlet/Filter.
+**Descrição**: Criar cookies sem a flag "secure" é sensível à segurança em conexões HTTPS.
 
-**Impacto no AEM**: Servlets são singleton por padrão, campos não thread-safe podem causar corrupção de dados.
+**Impacto no AEM**: Cookies inseguros podem ser interceptados em conexões não criptografadas.
 
 #### Non-compliant code
 ```java
 @Component(service = Servlet.class,
     property = {
-        "sling.servlet.methods=GET",
-        "sling.servlet.resourceTypes=myapp/components/data"
+        "sling.servlet.methods=POST",
+        "sling.servlet.resourceTypes=myapp/components/login"
     })
-public class DataServlet extends SlingSafeMethodsServlet {
-    
-    // PROBLEMA - SimpleDateFormat não é thread-safe
-    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    
-    // PROBLEMA - StringBuilder não é thread-safe
-    private final StringBuilder buffer = new StringBuilder();
-    
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        String formattedDate = dateFormat.format(new Date()); // Race condition
-        buffer.append("Request at: ").append(formattedDate); // Race condition
-        
-        response.getWriter().write(buffer.toString());
-        buffer.setLength(0); // Race condition
-    }
-}
-```
-
-#### Compliant code
-```java
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.methods=GET",
-        "sling.servlet.resourceTypes=myapp/components/data"
-    })
-public class DataServlet extends SlingSafeMethodsServlet {
-    
-    // CORRETO - DateTimeFormatter é thread-safe
-    private static final DateTimeFormatter DATE_FORMATTER = 
-        DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        // CORRETO - Variáveis locais são thread-safe
-        String formattedDate = DATE_FORMATTER.format(LocalDate.now());
-        StringBuilder buffer = new StringBuilder();
-        
-        buffer.append("Request at: ").append(formattedDate);
-        response.getWriter().write(buffer.toString());
-    }
-}
-```
-
-### Alternativa com ThreadLocal (para casos específicos):
-
-```java
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.methods=GET",
-        "sling.servlet.resourceTypes=myapp/components/legacy"
-    })
-public class LegacyServlet extends SlingSafeMethodsServlet {
-    
-    // ALTERNATIVA - ThreadLocal para objetos não thread-safe
-    private static final ThreadLocal<SimpleDateFormat> DATE_FORMAT = 
-        ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
-    
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        String formattedDate = DATE_FORMAT.get().format(new Date());
-        response.getWriter().write("Request at: " + formattedDate);
-    }
-}
-```
-
----
-## 🟡 Code Smells Java - Boas Práticas AEM
-
-### CQRules:CQBP-72 - close() method is not called on ResourceResolver object
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | CQRules:CQBP-72 |
-| **Type** | Code Smell |
-| **Severity** | Major |
-| **Tags** | cqsoftwarequality |
-| **AEM Context** | Resource Management |
-| **Since** | Version 2018.4.0 |
-
-**Descrição**: Objetos `ResourceResolver` obtidos do `ResourceResolverFactory` consomem recursos do sistema. É mais eficiente fechar explicitamente qualquer objeto `ResourceResolver` aberto chamando o método `close()`.
-
-**Impacto no AEM**: ResourceResolvers não fechados podem causar vazamentos de recursos e degradação de performance.
-
-#### Padrões Anti-Pattern Comuns:
-
-```java
-@Component(service = ContentProcessor.class)
-public class ContentProcessor {
-    
-    @Reference
-    private ResourceResolverFactory resolverFactory;
-    
-    // ANTI-PATTERN 1 - Não fechar ResourceResolver
-    public void processContent1() throws LoginException {
-        ResourceResolver resolver = resolverFactory.getServiceResourceResolver(null);
-        Resource resource = resolver.getResource("/content/mysite");
-        // Process resource...
-        // PROBLEMA: ResourceResolver não é fechado
-    }
-    
-    // ANTI-PATTERN 2 - Fechar apenas em caso de sucesso
-    public void processContent2() throws LoginException {
-        ResourceResolver resolver = resolverFactory.getServiceResourceResolver(null);
-        try {
-            Resource resource = resolver.getResource("/content/mysite");
-            if (resource != null) {
-                // Process resource...
-                resolver.close(); // PROBLEMA: Só fecha em caso de sucesso
-            }
-        } catch (Exception e) {
-            // PROBLEMA: ResourceResolver não é fechado em caso de exceção
-            throw e;
-        }
-    }
-}
-```
-
-#### Padrões Recomendados:
-
-```java
-@Component(service = ContentProcessor.class)
-public class ContentProcessor {
-    
-    @Reference
-    private ResourceResolverFactory resolverFactory;
-    
-    // PADRÃO 1: Try-with-resources (Mais Recomendado)
-    public void processContent1() throws LoginException {
-        Map<String, Object> authInfo = Collections.singletonMap(
-            ResourceResolverFactory.SUBSERVICE, "content-processor");
-            
-        try (ResourceResolver resolver = resolverFactory.getServiceResourceResolver(authInfo)) {
-            Resource resource = resolver.getResource("/content/mysite");
-            if (resource != null) {
-                processResource(resource);
-            }
-        } // ResourceResolver automaticamente fechado
-    }
-    
-    // PADRÃO 2: Finally block (Alternativo)
-    public void processContent2() throws LoginException {
-        ResourceResolver resolver = null;
-        try {
-            Map<String, Object> authInfo = Collections.singletonMap(
-                ResourceResolverFactory.SUBSERVICE, "content-processor");
-            resolver = resolverFactory.getServiceResourceResolver(authInfo);
-            
-            Resource resource = resolver.getResource("/content/mysite");
-            if (resource != null) {
-                processResource(resource);
-            }
-        } finally {
-            if (resolver != null && resolver.isLive()) {
-                resolver.close();
-            }
-        }
-    }
-    
-    // PADRÃO 3: Método utilitário para reutilização
-    public void processContent3() throws LoginException {
-        executeWithResolver("content-processor", resolver -> {
-            Resource resource = resolver.getResource("/content/mysite");
-            if (resource != null) {
-                processResource(resource);
-            }
-        });
-    }
-    
-    private void executeWithResolver(String subservice, 
-                                   Consumer<ResourceResolver> operation) throws LoginException {
-        Map<String, Object> authInfo = Collections.singletonMap(
-            ResourceResolverFactory.SUBSERVICE, subservice);
-            
-        try (ResourceResolver resolver = resolverFactory.getServiceResourceResolver(authInfo)) {
-            operation.accept(resolver);
-        }
-    }
-    
-    private void processResource(Resource resource) {
-        // Process resource logic...
-    }
-}
-```
-
----
-### CQRules:CQBP-75 - Do not use Sling servlet paths to register servlet
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | CQRules:CQBP-75 |
-| **Type** | Code Smell |
-| **Severity** | Major |
-| **Tags** | cqsoftwarequality |
-| **AEM Context** | Servlet Registration |
-| **Since** | Version 2018.4.0 |
-
-**Descrição**: Vincular servlets por caminhos é desencorajado. Servlets vinculados por caminho não podem usar controles de acesso JCR padrão e requerem rigor de segurança adicional.
-
-**Impacto no AEM**: Servlets registrados por path bypass o sistema de segurança do Sling e podem expor endpoints inseguros.
-
-#### Non-compliant code
-```java
-// PROBLEMA - Registro por path
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.paths=/apps/myco/endpoint",  // INSEGURO
-        "sling.servlet.methods=GET"
-    })
-public class PathBoundServlet extends SlingAllMethodsServlet {
-    
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        // Este servlet é acessível diretamente via path
-        // Não há controle de acesso JCR automático
-        response.getWriter().write("Data: " + getSensitiveData());
-    }
-    
-    private String getSensitiveData() {
-        return "sensitive information";
-    }
-}
-```
-
-#### Compliant code
-```java
-// CORRETO - Registro por resource type
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.resourceTypes=myco/components/api",  // SEGURO
-        "sling.servlet.methods=GET",
-        "sling.servlet.selectors=data"
-    })
-public class ResourceTypeBoundServlet extends SlingSafeMethodsServlet {
-    
-    @Override
-    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        // Este servlet herda as permissões JCR do resource
-        Resource resource = request.getResource();
-        
-        // Verificação adicional de segurança
-        if (!hasPermission(resource, request.getResourceResolver())) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-        
-        response.getWriter().write("Data: " + getSensitiveData());
-    }
-    
-    private boolean hasPermission(Resource resource, ResourceResolver resolver) {
-        // Implementar lógica de verificação de permissão
-        return resolver.hasChildren(resource); // Exemplo simplificado
-    }
-    
-    private String getSensitiveData() {
-        return "sensitive information";
-    }
-}
-```
-
-#### Estrutura de Conteúdo Recomendada:
-
-```
-/content/mysite/api
-  - sling:resourceType = "myco/components/api"
-  - jcr:primaryType = "nt:unstructured"
-  
-/apps/myco/components/api
-  - jcr:primaryType = "nt:folder"
-  
-// Servlet será acessível via:
-// GET /content/mysite/api.data.json
-// Com controle de acesso JCR aplicado automaticamente
-```
-
-#### Configuração de Segurança Adicional:
-
-```java
-// Para casos onde path-bound servlet é necessário
-@Component(service = Servlet.class,
-    property = {
-        "sling.servlet.paths=/bin/myco/secure-endpoint",
-        "sling.servlet.methods=POST"
-    })
-public class SecurePathBoundServlet extends SlingAllMethodsServlet {
+public class LoginServlet extends SlingAllMethodsServlet {
     
     @Override
     protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) {
-        // OBRIGATÓRIO - Implementar verificação de segurança manual
-        if (!isAuthorized(request)) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return;
-        }
+        // Authenticate user...
         
-        // OBRIGATÓRIO - Validar CSRF token
-        if (!isValidCSRFToken(request)) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-        
-        // Process request...
-    }
-    
-    private boolean isAuthorized(SlingHttpServletRequest request) {
-        // Implementar verificação de autorização
-        ResourceResolver resolver = request.getResourceResolver();
-        return !"anonymous".equals(resolver.getUserID());
-    }
-    
-    private boolean isValidCSRFToken(SlingHttpServletRequest request) {
-        // Implementar verificação de CSRF token
-        String token = request.getParameter("csrf-token");
-        return token != null && validateToken(token);
-    }
-    
-    private boolean validateToken(String token) {
-        // Implementar validação de token
-        return true; // Placeholder
-    }
-}
-```
-
----
-### java:S1147 - Exit methods should not be called
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | java:S1147 |
-| **Type** | Code Smell |
-| **Severity** | Blocker |
-| **Tags** | cert, cwe, suspicious |
-| **AEM Context** | OSGi Services, Application Lifecycle |
-| **Old Key** | squid:S1147 |
-
-**Descrição**: Métodos de saída como `System.exit()` não devem ser chamados.
-
-**Impacto no AEM**: Chamar `System.exit()` pode derrubar toda a instância AEM, afetando outros serviços.
-
-#### Non-compliant code
-```java
-@Component(service = DataProcessor.class)
-public class DataProcessor {
-    
-    public void processData(String data) {
-        try {
-            if (data == null || data.isEmpty()) {
-                log.error("Invalid data provided");
-                System.exit(1); // PROBLEMA - Derruba toda a JVM
-            }
-            
-            // Process data...
-            if (processingFailed()) {
-                System.exit(-1); // PROBLEMA - Derruba toda a JVM
-            }
-        } catch (Exception e) {
-            log.error("Processing failed", e);
-            System.exit(1); // PROBLEMA - Derruba toda a JVM
-        }
+        Cookie sessionCookie = new Cookie("sessionId", generateSessionId());
+        sessionCookie.setMaxAge(3600);
+        // Missing secure flag - VULNERABLE over HTTPS
+        response.addCookie(sessionCookie);
     }
 }
 ```
 
 #### Compliant code
 ```java
-@Component(service = DataProcessor.class)
-public class DataProcessor {
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=POST",
+        "sling.servlet.resourceTypes=myapp/components/login"
+    })
+public class LoginServlet extends SlingAllMethodsServlet {
     
-    public void processData(String data) throws DataProcessingException {
-        try {
-            if (data == null || data.isEmpty()) {
-                log.error("Invalid data provided");
-                throw new IllegalArgumentException("Data cannot be null or empty");
-            }
-            
-            // Process data...
-            if (processingFailed()) {
-                throw new DataProcessingException("Processing failed");
-            }
-        } catch (Exception e) {
-            log.error("Processing failed", e);
-            throw new DataProcessingException("Failed to process data", e);
-        }
+    @Override
+    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) {
+        // Authenticate user...
+        
+        Cookie sessionCookie = new Cookie("sessionId", generateSessionId());
+        sessionCookie.setMaxAge(3600);
+        sessionCookie.setSecure(true);      // Secure flag for HTTPS
+        sessionCookie.setHttpOnly(true);    // Prevent XSS
+        sessionCookie.setPath("/");         // Explicit path
+        
+        // For AEM, consider SameSite attribute
+        response.setHeader("Set-Cookie", 
+            sessionCookie.getName() + "=" + sessionCookie.getValue() + 
+            "; Max-Age=" + sessionCookie.getMaxAge() + 
+            "; Path=" + sessionCookie.getPath() + 
+            "; Secure; HttpOnly; SameSite=Strict");
     }
     
-    // Para casos onde o serviço precisa ser desabilitado
-    @Reference
-    private ComponentContext componentContext;
-    
-    public void handleCriticalError() {
-        try {
-            // Attempt recovery...
-        } catch (Exception e) {
-            log.error("Critical error, disabling service", e);
-            // CORRETO - Desabilita apenas este componente
-            componentContext.disableComponent(DataProcessor.class.getName());
-        }
-    }
-}
-
-// Exceção customizada para melhor tratamento de erros
-public class DataProcessingException extends Exception {
-    public DataProcessingException(String message) {
-        super(message);
-    }
-    
-    public DataProcessingException(String message, Throwable cause) {
-        super(message, cause);
+    private String generateSessionId() {
+        return UUID.randomUUID().toString();
     }
 }
 ```
 
 ---
-## 🔒 Regras de Logging e Tratamento de Exceções
 
-### CQRules:CQBP-44---CatchAndEitherLogOrThrow - Catch and either log or throw
+## 🔧 Regras de Qualidade de Código Java
+
+### java:S112 - Generic exceptions should never be thrown
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | CQRules:CQBP-44---CatchAndEitherLogOrThrow |
+| **Key** | java:S112 |
 | **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | cqsoftwarequality |
+| **Severity** | Major |
+| **Tags** | cert, cwe, error-handling |
 | **AEM Context** | Exception Handling |
-| **Since** | Version 2018.4.0 |
+| **Old Key** | squid:S00112 |
 
-**Descrição**: Em geral, uma exceção deve ser logada exatamente uma vez. Logar exceções múltiplas vezes causa confusão.
+**Descrição**: Exceções genéricas nunca devem ser lançadas pois não fornecem informação suficiente sobre o erro.
 
-**Impacto no AEM**: Logs duplicados dificultam a análise de problemas e podem mascarar a origem real dos erros.
+**Impacto no AEM**: Exceções genéricas dificultam o debugging e tratamento adequado de erros.
 
 #### Non-compliant code
 ```java
-@Component(service = WorkflowService.class)
-public class WorkflowService {
+@Component(service = AssetProcessor.class)
+public class AssetProcessor {
     
-    public void executeWorkflow(String workflowId) throws WorkflowException {
-        try {
-            processWorkflowStep(workflowId);
-        } catch (Exception e) {
-            log.error("Workflow execution failed", e); // Log da exceção
-            throw e; // PROBLEMA - Re-throw da mesma exceção (será logada novamente)
+    public void processAsset(Asset asset) throws Exception { // GENERIC EXCEPTION
+        if (asset == null) {
+            throw new RuntimeException("Asset is null"); // GENERIC EXCEPTION
         }
-    }
-    
-    private void processWorkflowStep(String workflowId) throws Exception {
-        // Workflow processing logic...
-        throw new RuntimeException("Simulated error");
+        
+        if (!isValidAsset(asset)) {
+            throw new Exception("Invalid asset"); // GENERIC EXCEPTION
+        }
     }
 }
 ```
 
 #### Compliant code
 ```java
-@Component(service = WorkflowService.class)
-public class WorkflowService {
+@Component(service = AssetProcessor.class)
+public class AssetProcessor {
     
-    // OPÇÃO 1: Log e handle (não re-throw)
-    public void executeWorkflow1(String workflowId) {
-        try {
-            processWorkflowStep(workflowId);
-        } catch (Exception e) {
-            log.error("Workflow execution failed for ID: {}", workflowId, e);
-            // Handle the error appropriately
-            notifyWorkflowFailure(workflowId, e.getMessage());
+    public void processAsset(Asset asset) throws AssetProcessingException {
+        if (asset == null) {
+            throw new AssetProcessingException("Asset cannot be null");
+        }
+        
+        if (!isValidAsset(asset)) {
+            throw new InvalidAssetException("Asset validation failed: " + asset.getPath());
         }
     }
     
-    // OPÇÃO 2: Transform e throw (sem log duplicado)
-    public void executeWorkflow2(String workflowId) throws WorkflowException {
-        try {
-            processWorkflowStep(workflowId);
-        } catch (Exception e) {
-            // Transform para exceção específica do domínio (sem log aqui)
-            throw new WorkflowException("Failed to execute workflow: " + workflowId, e);
+    // Custom exceptions provide better context
+    public static class AssetProcessingException extends Exception {
+        public AssetProcessingException(String message) {
+            super(message);
+        }
+        
+        public AssetProcessingException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
     
-    // OPÇÃO 3: Log apenas em nível específico da aplicação
-    public void executeWorkflow3(String workflowId) throws WorkflowException {
-        try {
-            processWorkflowStep(workflowId);
-        } catch (Exception e) {
-            // Log apenas para debug/trace, não error
-            log.debug("Workflow step failed, will be retried", e);
-            throw new WorkflowException("Workflow execution failed", e);
+    public static class InvalidAssetException extends AssetProcessingException {
+        public InvalidAssetException(String message) {
+            super(message);
         }
-    }
-    
-    private void processWorkflowStep(String workflowId) throws Exception {
-        // Workflow processing logic...
-        if (workflowId == null) {
-            throw new IllegalArgumentException("Workflow ID cannot be null");
-        }
-    }
-    
-    private void notifyWorkflowFailure(String workflowId, String errorMessage) {
-        // Notify administrators or trigger recovery process
-        log.info("Workflow failure notification sent for ID: {}", workflowId);
-    }
-}
-
-// Exceção específica do domínio
-public class WorkflowException extends Exception {
-    public WorkflowException(String message, Throwable cause) {
-        super(message, cause);
     }
 }
 ```
 
----
-### CQRules:CQBP-44---ExceptionPrintStackTrace - Do not use Exception.printStackTrace()
+### java:S1181 - Throwable and Error should not be caught
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | CQRules:CQBP-44---ExceptionPrintStackTrace |
+| **Key** | java:S1181 |
 | **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | cqsoftwarequality |
-| **AEM Context** | Logging Framework |
-| **Since** | Version 2018.4.0 |
+| **Severity** | Major |
+| **Tags** | bad-practice, cert, cwe, error-handling |
+| **AEM Context** | Error Handling |
+| **Old Key** | squid:S1181 |
 
-**Descrição**: Contexto é crítico ao entender mensagens de log. Usar `Exception.printStackTrace()` faz com que apenas o stack trace seja enviado para o stream de erro padrão, perdendo todo o contexto.
+**Descrição**: Throwable e Error não devem ser capturados pois representam problemas sérios do sistema.
 
-**Impacto no AEM**: Em aplicações multi-threaded como AEM, stack traces podem se sobrepor e causar confusão significativa.
+**Impacto no AEM**: Capturar Error pode mascarar problemas críticos como OutOfMemoryError.
 
 #### Non-compliant code
 ```java
-@Component(service = AssetProcessor.class)
-public class AssetProcessor {
+@Component(service = WorkflowStep.class)
+public class WorkflowStep implements WorkflowProcess {
     
-    public void processAsset(Resource assetResource) {
+    @Override
+    public void execute(WorkItem workItem, WorkflowSession workflowSession, 
+                       MetaDataMap metaDataMap) throws WorkflowException {
         try {
-            validateAsset(assetResource);
-            transformAsset(assetResource);
-        } catch (Exception e) {
-            e.printStackTrace(); // PROBLEMA - Perde contexto e pode sobrepor com outros threads
-        }
-    }
-    
-    public void batchProcessAssets(List<Resource> assets) {
-        for (Resource asset : assets) {
-            try {
-                processAsset(asset);
-            } catch (Exception e) {
-                System.err.println("Error processing asset"); // PROBLEMA - Sem contexto
-                e.printStackTrace(); // PROBLEMA - Stack trace sem contexto
-            }
+            processWorkflowItem(workItem);
+        } catch (Throwable t) { // TOO BROAD - catches Error too
+            log.error("Workflow failed", t);
+            // This might catch OutOfMemoryError, StackOverflowError, etc.
         }
     }
 }
@@ -1382,420 +724,609 @@ public class AssetProcessor {
 
 #### Compliant code
 ```java
-@Component(service = AssetProcessor.class)
-public class AssetProcessor {
+@Component(service = WorkflowStep.class)
+public class WorkflowStep implements WorkflowProcess {
     
-    private static final Logger log = LoggerFactory.getLogger(AssetProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(WorkflowStep.class);
     
-    public void processAsset(Resource assetResource) {
+    @Override
+    public void execute(WorkItem workItem, WorkflowSession workflowSession, 
+                       MetaDataMap metaDataMap) throws WorkflowException {
         try {
-            validateAsset(assetResource);
-            transformAsset(assetResource);
+            processWorkflowItem(workItem);
+        } catch (WorkflowException e) {
+            // Re-throw workflow exceptions
+            throw e;
         } catch (Exception e) {
-            // CORRETO - Log com contexto através do framework de logging
-            log.error("Failed to process asset at path: {}", 
-                     assetResource.getPath(), e);
+            // Catch specific exceptions, not Throwable/Error
+            log.error("Workflow processing failed for item: {}", workItem.getId(), e);
+            throw new WorkflowException("Processing failed", e);
         }
+        // Let Error propagate - don't catch OutOfMemoryError, etc.
+    }
+}
+```
+
+### java:S1854 - Unused assignments should be removed
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | java:S1854 |
+| **Type** | Code Smell |
+| **Severity** | Major |
+| **Tags** | cert, cwe, unused |
+| **AEM Context** | Code Quality |
+| **Old Key** | squid:S1854 |
+
+**Descrição**: Atribuições não utilizadas devem ser removidas para melhorar a legibilidade do código.
+
+**Impacto no AEM**: Código morto pode confundir desenvolvedores e indicar lógica incompleta.
+
+#### Non-compliant code
+```java
+@Component(service = PageService.class)
+public class PageService {
+    
+    public String getPageTitle(Page page) {
+        String title = page.getTitle();
+        String description = page.getDescription(); // UNUSED ASSIGNMENT
+        
+        if (title == null) {
+            title = page.getName();
+        }
+        
+        String fallbackTitle = "Default Title"; // UNUSED ASSIGNMENT
+        
+        return title;
+    }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = PageService.class)
+public class PageService {
+    
+    public String getPageTitle(Page page) {
+        String title = page.getTitle();
+        
+        if (title == null) {
+            title = page.getName();
+        }
+        
+        return title != null ? title : "Default Title";
     }
     
-    public void batchProcessAssets(List<Resource> assets) {
-        log.info("Starting batch processing of {} assets", assets.size());
+    // If you need description, create a separate method
+    public PageInfo getPageInfo(Page page) {
+        String title = getPageTitle(page);
+        String description = page.getDescription();
         
-        int processed = 0;
-        int failed = 0;
-        
-        for (Resource asset : assets) {
-            try {
-                processAsset(asset);
-                processed++;
-                log.debug("Successfully processed asset: {}", asset.getPath());
-            } catch (Exception e) {
-                failed++;
-                // CORRETO - Log estruturado com contexto completo
-                log.error("Failed to process asset {} (batch position: {}). " +
-                         "Processed: {}, Failed: {}", 
-                         asset.getPath(), processed + failed, processed, failed, e);
+        return new PageInfo(title, description);
+    }
+}
+```
+
+### java:S2589 - Boolean expressions should not be gratuitous
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | java:S2589 |
+| **Type** | Code Smell |
+| **Severity** | Major |
+| **Tags** | cert, cwe, redundant, suspicious |
+| **AEM Context** | Logic Errors |
+| **Old Key** | squid:S1850 |
+
+**Descrição**: Expressões booleanas não devem ser gratuitas (sempre true ou false).
+
+**Impacto no AEM**: Lógica redundante pode indicar bugs ou código morto.
+
+#### Non-compliant code
+```java
+@Component(service = ContentValidator.class)
+public class ContentValidator {
+    
+    public boolean isValidContent(Resource resource) {
+        if (resource != null) {
+            ValueMap properties = resource.getValueMap();
+            
+            if (properties != null && properties != null) { // REDUNDANT CHECK
+                return true;
+            }
+            
+            boolean hasTitle = properties.containsKey("jcr:title");
+            if (hasTitle == true) { // GRATUITOUS COMPARISON
+                return true;
             }
         }
         
-        log.info("Batch processing completed. Processed: {}, Failed: {}", 
-                processed, failed);
+        return false;
     }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = ContentValidator.class)
+public class ContentValidator {
     
-    // Exemplo de logging estruturado para diferentes níveis
-    public void processAssetWithDetailedLogging(Resource assetResource) {
-        String assetPath = assetResource.getPath();
-        log.info("Starting asset processing for: {}", assetPath);
-        
-        try {
-            log.debug("Validating asset: {}", assetPath);
-            validateAsset(assetResource);
-            
-            log.debug("Transforming asset: {}", assetPath);
-            transformAsset(assetResource);
-            
-            log.info("Successfully processed asset: {}", assetPath);
-            
-        } catch (ValidationException e) {
-            log.warn("Asset validation failed for: {}. Reason: {}", 
-                    assetPath, e.getMessage(), e);
-        } catch (TransformationException e) {
-            log.error("Asset transformation failed for: {}. " +
-                     "This may require manual intervention.", assetPath, e);
-        } catch (Exception e) {
-            log.error("Unexpected error processing asset: {}. " +
-                     "Please check system configuration.", assetPath, e);
+    public boolean isValidContent(Resource resource) {
+        if (resource == null) {
+            return false;
         }
+        
+        ValueMap properties = resource.getValueMap();
+        if (properties == null) {
+            return false;
+        }
+        
+        // Direct boolean check
+        return properties.containsKey("jcr:title") || 
+               properties.containsKey("jcr:description");
     }
     
-    private void validateAsset(Resource assetResource) throws ValidationException {
-        // Validation logic...
+    public ValidationResult validateContentDetailed(Resource resource) {
+        if (resource == null) {
+            return ValidationResult.invalid("Resource is null");
+        }
+        
+        ValueMap properties = resource.getValueMap();
+        if (properties.isEmpty()) {
+            return ValidationResult.invalid("No properties found");
+        }
+        
+        List<String> issues = new ArrayList<>();
+        
+        if (!properties.containsKey("jcr:title")) {
+            issues.add("Missing title");
+        }
+        
+        if (!properties.containsKey("jcr:description")) {
+            issues.add("Missing description");
+        }
+        
+        return issues.isEmpty() ? 
+            ValidationResult.valid() : 
+            ValidationResult.invalid(String.join(", ", issues));
     }
-    
-    private void transformAsset(Resource assetResource) throws TransformationException {
-        // Transformation logic...
-    }
-}
-
-// Exceções específicas para melhor categorização
-class ValidationException extends Exception {
-    public ValidationException(String message) { super(message); }
-    public ValidationException(String message, Throwable cause) { super(message, cause); }
-}
-
-class TransformationException extends Exception {
-    public TransformationException(String message) { super(message); }
-    public TransformationException(String message, Throwable cause) { super(message, cause); }
 }
 ```
 
 ---
-## 🔄 Migrações de Chaves Java (SonarQube 9.9)
 
-### Impacto da Migração squid:* → java:*
+## 🔄 Regras de Sling Models e OSGi
 
-A partir de **13 de Fevereiro de 2025** (Cloud Manager 2025.2.0), o Cloud Manager Code Quality utiliza SonarQube 9.9 com lista atualizada de regras e migração de chaves `squid:*` para `java:*`.
+### AEM Rules:AEM-16 - Optional is defined as DefaultInjectionStrategy
 
-| Old Key (pre 2024.12.0) | New Key | Categoria | Impacto |
-|-------------------------|---------|-----------|---------|
-| squid:S2068 | java:S2068 | Security Hotspot | Senhas hardcoded |
-| squid:S2095 | java:S2095 | Bug | Fechamento de recursos |
-| squid:S2168 | java:S2168 | Bug | Double-checked locking |
-| squid:S2276 | java:S2276 | Bug | Thread.sleep vs wait |
-| squid:S1147 | java:S1147 | Code Smell | System.exit() |
-| squid:S128 | java:S128 | Code Smell | Switch cases |
-| squid:S2178 | java:S2178 | Code Smell | Short-circuit logic |
-| squid:S2254 | java:S2254 | Vulnerability | Session ID exposure |
-| squid:S2658 | java:S2658 | Vulnerability | Dynamic class loading |
-| squid:S2976 | java:S5445 | Vulnerability | Temp file creation |
-| squid:S2277 | java:S5542 | Vulnerability | Encryption algorithms |
-| squid:S2258 | java:S5547 | Vulnerability | Cipher algorithms |
-| squid:S2070 | java:S4790 | Security Hotspot | Weak hashing |
-| squid:S2245 | java:S2245 | Security Hotspot | PRNG usage |
-| squid:S2257 | java:S2257 | Security Hotspot | Non-standard crypto |
-| squid:S2077 | java:S2077 | Security Hotspot | SQL injection |
-| squid:S2092 | java:S2092 | Security Hotspot | Cookie security |
+| Atributo | Valor |
+|----------|-------|
+| **Key** | AEM Rules:AEM-16 |
+| **Type** | Code Smell |
+| **Severity** | Minor |
+| **Tags** | aem, sling-models |
+| **AEM Context** | Sling Models |
 
-### Ações Necessárias para Migração:
+**Descrição**: Optional deve ser definido como DefaultInjectionStrategy em Sling Models para melhor performance.
 
-#### 1. Atualização de Configurações SonarQube
+**Impacto no AEM**: Injection strategy inadequada pode causar falhas de inicialização de modelos.
 
-```xml
-<!-- sonar-project.properties - ANTES -->
-sonar.issue.ignore.multicriteria=e1,e2,e3
-sonar.issue.ignore.multicriteria.e1.ruleKey=squid:S2095
-sonar.issue.ignore.multicriteria.e2.ruleKey=squid:S2068
-sonar.issue.ignore.multicriteria.e3.ruleKey=squid:S1147
-
-<!-- sonar-project.properties - DEPOIS -->
-sonar.issue.ignore.multicriteria=e1,e2,e3
-sonar.issue.ignore.multicriteria.e1.ruleKey=java:S2095
-sonar.issue.ignore.multicriteria.e2.ruleKey=java:S2068
-sonar.issue.ignore.multicriteria.e3.ruleKey=java:S1147
-```
-
-#### 2. Atualização de Quality Gates
-
-```json
-// Quality Gate - ANTES
-{
-  "conditions": [
-    {
-      "metric": "squid:S2095",
-      "operator": "GT",
-      "threshold": "0"
-    }
-  ]
-}
-
-// Quality Gate - DEPOIS
-{
-  "conditions": [
-    {
-      "metric": "java:S2095", 
-      "operator": "GT",
-      "threshold": "0"
-    }
-  ]
+#### Non-compliant code
+```java
+@Model(adaptables = Resource.class)
+public class MyModel {
+    
+    @ValueMapValue
+    @Optional // SHOULD USE DEFAULT INJECTION STRATEGY
+    private String title;
+    
+    @ChildResource
+    @Optional // SHOULD USE DEFAULT INJECTION STRATEGY
+    private Resource image;
+    
+    @OSGiService
+    @Optional // SHOULD USE DEFAULT INJECTION STRATEGY
+    private PageManager pageManager;
 }
 ```
 
-#### 3. Atualização de Scripts de CI/CD
+#### Compliant code
+```java
+@Model(adaptables = Resource.class, 
+       defaultInjectionStrategy = DefaultInjectionStrategy.OPTIONAL)
+public class MyModel {
+    
+    @ValueMapValue
+    private String title;
+    
+    @ChildResource
+    private Resource image;
+    
+    @OSGiService
+    private PageManager pageManager;
+    
+    // For required fields, use @Required
+    @ValueMapValue
+    @Required
+    private String requiredField;
+    
+    // Getters with null checks for optional fields
+    public String getTitle() {
+        return title != null ? title : "";
+    }
+    
+    public String getImagePath() {
+        return image != null ? image.getPath() : "";
+    }
+    
+    public boolean hasImage() {
+        return image != null;
+    }
+}
+```
+
+### AEM Rules:AEM-2 - Use predefined constant instead of hardcoded value
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | AEM Rules:AEM-2 |
+| **Type** | Code Smell |
+| **Severity** | Minor |
+| **Tags** | aem |
+| **AEM Context** | Constants Usage |
+
+**Descrição**: Use constantes predefinidas ao invés de valores hardcoded para melhor manutenibilidade.
+
+**Impacto no AEM**: Valores hardcoded dificultam manutenção e podem causar inconsistências.
+
+#### Non-compliant code
+```java
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=GET",
+        "sling.servlet.resourceTypes=myapp/components/api"
+    })
+public class ApiServlet extends SlingSafeMethodsServlet {
+    
+    @Override
+    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws IOException {
+        
+        response.setContentType("application/json"); // HARDCODED
+        response.setStatus(200); // HARDCODED
+        
+        String path = "/content/mysite"; // HARDCODED PATH
+        
+        if (request.getParameter("type").equals("page")) { // HARDCODED
+            // Process page request
+        }
+    }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=GET",
+        "sling.servlet.resourceTypes=myapp/components/api"
+    })
+public class ApiServlet extends SlingSafeMethodsServlet {
+    
+    // Use predefined constants
+    private static final String CONTENT_TYPE_JSON = "application/json";
+    private static final String SITE_ROOT_PATH = "/content/mysite";
+    private static final String PARAM_TYPE = "type";
+    private static final String TYPE_PAGE = "page";
+    
+    @Override
+    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws IOException {
+        
+        response.setContentType(CONTENT_TYPE_JSON);
+        response.setStatus(HttpServletResponse.SC_OK); // Use HTTP constants
+        
+        String requestType = request.getParameter(PARAM_TYPE);
+        
+        if (TYPE_PAGE.equals(requestType)) {
+            processPageRequest(request, response);
+        }
+    }
+    
+    private void processPageRequest(SlingHttpServletRequest request, 
+                                  SlingHttpServletResponse response) throws IOException {
+        ResourceResolver resolver = request.getResourceResolver();
+        Resource siteRoot = resolver.getResource(SITE_ROOT_PATH);
+        
+        if (siteRoot != null) {
+            // Process site content
+        }
+    }
+}
+```
+
+---
+
+## 🛡️ Regras de Segurança Avançadas
+
+### findsecbugs:PATH_TRAVERSAL_IN - Security - Potential Path Traversal (file read)
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | findsecbugs:PATH_TRAVERSAL_IN |
+| **Type** | Vulnerability |
+| **Severity** | Major |
+| **Tags** | cwe, owasp-a4, wasc |
+| **AEM Context** | File Operations |
+
+**Descrição**: Potencial path traversal em operações de leitura de arquivo pode permitir acesso não autorizado.
+
+**Impacto no AEM**: Atacantes podem ler arquivos sensíveis do sistema através de manipulação de caminhos.
+
+#### Non-compliant code
+```java
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=GET",
+        "sling.servlet.paths=/bin/fileread"
+    })
+public class FileReadServlet extends SlingSafeMethodsServlet {
+    
+    @Override
+    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws IOException {
+        
+        String fileName = request.getParameter("file");
+        File file = new File("/var/uploads/" + fileName); // VULNERABLE TO PATH TRAVERSAL
+        
+        if (file.exists()) {
+            Files.copy(file.toPath(), response.getOutputStream());
+        }
+    }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=GET",
+        "sling.servlet.resourceTypes=myapp/components/fileread"
+    })
+public class FileReadServlet extends SlingSafeMethodsServlet {
+    
+    private static final String UPLOAD_DIR = "/var/uploads/";
+    private static final Pattern SAFE_FILENAME = Pattern.compile("^[a-zA-Z0-9._-]+$");
+    
+    @Override
+    protected void doGet(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws IOException {
+        
+        String fileName = request.getParameter("file");
+        
+        if (!isValidFileName(fileName)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid filename");
+            return;
+        }
+        
+        // Use ResourceResolver for AEM-managed files
+        ResourceResolver resolver = request.getResourceResolver();
+        Resource fileResource = resolver.getResource("/content/dam/uploads/" + fileName);
+        
+        if (fileResource != null) {
+            Asset asset = fileResource.adaptTo(Asset.class);
+            if (asset != null) {
+                Rendition original = asset.getOriginal();
+                try (InputStream is = original.getStream()) {
+                    response.setContentType(asset.getMimeType());
+                    IOUtils.copy(is, response.getOutputStream());
+                }
+            }
+        } else {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+    
+    private boolean isValidFileName(String fileName) {
+        return fileName != null && 
+               SAFE_FILENAME.matcher(fileName).matches() &&
+               !fileName.contains("..") &&
+               !fileName.startsWith("/") &&
+               fileName.length() <= 255;
+    }
+}
+```
+
+### findsecbugs:PATH_TRAVERSAL_OUT - Security - Potential Path Traversal (file write)
+
+| Atributo | Valor |
+|----------|-------|
+| **Key** | findsecbugs:PATH_TRAVERSAL_OUT |
+| **Type** | Vulnerability |
+| **Severity** | Major |
+| **Tags** | cwe, owasp-a4, wasc |
+| **AEM Context** | File Upload Operations |
+
+**Descrição**: Potencial path traversal em operações de escrita de arquivo pode permitir sobrescrita de arquivos do sistema.
+
+**Impacto no AEM**: Atacantes podem sobrescrever arquivos críticos do sistema ou criar arquivos em locais não autorizados.
+
+#### Non-compliant code
+```java
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=POST",
+        "sling.servlet.paths=/bin/upload"
+    })
+public class FileUploadServlet extends SlingAllMethodsServlet {
+    
+    @Override
+    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws IOException {
+        
+        RequestParameter fileParam = request.getRequestParameter("file");
+        String fileName = request.getParameter("filename");
+        
+        // VULNERABLE - no path validation
+        File targetFile = new File("/var/uploads/" + fileName);
+        
+        try (FileOutputStream fos = new FileOutputStream(targetFile)) {
+            IOUtils.copy(fileParam.getInputStream(), fos);
+        }
+    }
+}
+```
+
+#### Compliant code
+```java
+@Component(service = Servlet.class,
+    property = {
+        "sling.servlet.methods=POST",
+        "sling.servlet.resourceTypes=myapp/components/upload"
+    })
+public class FileUploadServlet extends SlingAllMethodsServlet {
+    
+    private static final String UPLOAD_PATH = "/content/dam/uploads";
+    private static final Pattern SAFE_FILENAME = Pattern.compile("^[a-zA-Z0-9._-]+$");
+    private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "png", "pdf", "docx");
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    
+    @Reference
+    private AssetManager assetManager;
+    
+    @Override
+    protected void doPost(SlingHttpServletRequest request, SlingHttpServletResponse response) 
+            throws IOException {
+        
+        RequestParameter fileParam = request.getRequestParameter("file");
+        String fileName = request.getParameter("filename");
+        
+        // Validate filename
+        if (!isValidFileName(fileName)) {
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid filename");
+            return;
+        }
+        
+        // Validate file size
+        if (fileParam.getSize() > MAX_FILE_SIZE) {
+            response.sendError(HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE, "File too large");
+            return;
+        }
+        
+        // Use AEM Asset Manager for secure file handling
+        ResourceResolver resolver = request.getResourceResolver();
+        
+        try {
+            String assetPath = UPLOAD_PATH + "/" + fileName;
+            
+            // Create asset using AEM's secure mechanisms
+            Asset asset = assetManager.createAsset(
+                assetPath,
+                fileParam.getInputStream(),
+                fileParam.getContentType(),
+                true
+            );
+            
+            response.setStatus(HttpServletResponse.SC_CREATED);
+            response.getWriter().write("{\"path\":\"" + asset.getPath() + "\"}");
+            
+        } catch (Exception e) {
+            log.error("Failed to upload file: {}", fileName, e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Upload failed");
+        }
+    }
+    
+    private boolean isValidFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Check pattern
+        if (!SAFE_FILENAME.matcher(fileName).matches()) {
+            return false;
+        }
+        
+        // Check extension
+        String extension = getFileExtension(fileName);
+        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
+            return false;
+        }
+        
+        // Check for path traversal
+        return !fileName.contains("..") && 
+               !fileName.startsWith("/") && 
+               fileName.length() <= 255;
+    }
+    
+    private String getFileExtension(String fileName) {
+        int lastDot = fileName.lastIndexOf('.');
+        return lastDot > 0 ? fileName.substring(lastDot + 1) : "";
+    }
+}
+```
+
+---
+
+## 📋 Resumo de Implementação
+
+### Checklist de Qualidade Java para AEM
+
+#### 🔒 Segurança
+- [ ] Não usar `HttpServletRequest.getRequestedSessionId()`
+- [ ] Evitar carregamento dinâmico de classes
+- [ ] Usar algoritmos de criptografia robustos (AES-256-GCM)
+- [ ] Implementar validação rigorosa de entrada
+- [ ] Configurar cookies com flags de segurança
+- [ ] Usar prepared statements para SQL
+- [ ] Validar caminhos de arquivo contra path traversal
+
+#### 🧵 Threading e Concorrência
+- [ ] Evitar double-checked locking
+- [ ] Usar objetos thread-safe em servlets
+- [ ] Preferir `wait()` ao invés de `Thread.sleep()` com locks
+- [ ] Sincronizar em campos `private final`
+- [ ] Evitar campos estáticos não thread-safe
+
+#### 🔧 Gerenciamento de Recursos
+- [ ] Sempre fechar `ResourceResolver` (try-with-resources)
+- [ ] Fazer logout de `Session` JCR
+- [ ] Fechar `InputStream`/`OutputStream`
+- [ ] Configurar timeouts em `HttpClient`
+- [ ] Usar service users ao invés de acesso administrativo
+
+#### 📝 Qualidade de Código
+- [ ] Usar exceções específicas ao invés de genéricas
+- [ ] Não capturar `Throwable` ou `Error`
+- [ ] Remover atribuições não utilizadas
+- [ ] Evitar expressões booleanas redundantes
+- [ ] Usar constantes ao invés de valores hardcoded
+
+#### 🎯 Boas Práticas AEM
+- [ ] Registrar servlets por resource type, não por path
+- [ ] Usar `DefaultInjectionStrategy.OPTIONAL` em Sling Models
+- [ ] Implementar tratamento adequado de exceções em servlets
+- [ ] Usar Asset Manager para operações de arquivo
+- [ ] Validar permissões com `ResourceResolver`
+
+### Ferramentas de Validação
 
 ```bash
-#!/bin/bash
-# ANTES - Verificação de regras antigas
-if sonar-scanner | grep -q "squid:S2095"; then
-    echo "Resource leak detected"
-    exit 1
-fi
+# Executar SonarQube
+mvn clean compile sonar:sonar
 
-# DEPOIS - Verificação de regras novas
-if sonar-scanner | grep -q "java:S2095"; then
-    echo "Resource leak detected"
-    exit 1
-fi
-```
+# Executar testes com cobertura
+mvn clean test jacoco:report
 
-#### 4. Atualização de Documentação de Equipe
+# Validar com Checkstyle
+mvn checkstyle:check
 
-```markdown
-# Guia de Desenvolvimento - ATUALIZADO
-
-## Regras Críticas Java (SonarQube 9.9+)
-
-### Gerenciamento de Recursos
-- **java:S2095** (antes squid:S2095): Resources should be closed
-- **AEM Rules:AEM-6**: ResourceResolver should be closed in finally block
-
-### Segurança
-- **java:S2068** (antes squid:S2068): Hard-coded passwords
-- **java:S2254** (antes squid:S2254): HttpServletRequest.getRequestedSessionId()
-
-### Threading
-- **java:S2168** (antes squid:S2168): Double-checked locking
-- **java:S2276** (antes squid:S2276): wait() vs Thread.sleep()
+# Executar SpotBugs
+mvn spotbugs:check
 ```
 
 ---
-## 🛠️ Guia de Implementação para AEM
 
-### Configuração SonarQube para Projetos AEM
-
-#### sonar-project.properties
-```properties
-# Configuração básica para projetos AEM
-sonar.projectKey=com.mycompany:aem-project
-sonar.projectName=AEM Project
-sonar.projectVersion=1.0.0
-
-# Configurações Java
-sonar.java.source=11
-sonar.java.target=11
-sonar.java.libraries=target/dependency/*.jar,core/target/classes
-
-# Exclusões padrão AEM
-sonar.exclusions=**/target/**,**/node_modules/**,**/clientlibs-site/**,**/resources/**
-
-# Inclusões específicas para Java backend
-sonar.sources=core/src/main/java,it.tests/src/main/java
-sonar.tests=core/src/test/java,it.tests/src/test/java
-
-# Configurações específicas para regras Java
-sonar.java.coveragePlugin=jacoco
-sonar.jacoco.reportPaths=target/site/jacoco/jacoco.exec
-```
-
-#### Quality Gates Recomendados para AEM
-```json
-{
-  "name": "AEM Java Backend Quality Gate",
-  "conditions": [
-    {
-      "metric": "bugs",
-      "operator": "GT", 
-      "threshold": "0"
-    },
-    {
-      "metric": "vulnerabilities",
-      "operator": "GT",
-      "threshold": "0"
-    },
-    {
-      "metric": "security_hotspots_reviewed",
-      "operator": "LT",
-      "threshold": "100"
-    },
-    {
-      "metric": "code_smells",
-      "operator": "GT",
-      "threshold": "50"
-    },
-    {
-      "metric": "coverage",
-      "operator": "LT",
-      "threshold": "80"
-    },
-    {
-      "metric": "duplicated_lines_density",
-      "operator": "GT",
-      "threshold": "3"
-    }
-  ]
-}
-```
-
-### Configuração Maven para Análise SonarQube
-
-#### pom.xml - Configuração Parent
-```xml
-<properties>
-    <sonar.host.url>https://sonarqube.company.com</sonar.host.url>
-    <sonar.organization>mycompany</sonar.organization>
-    <sonar.projectKey>com.mycompany:aem-project</sonar.projectKey>
-    
-    <!-- Configurações específicas para regras Java AEM -->
-    <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
-    <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-    <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
-</properties>
-
-<build>
-    <plugins>
-        <plugin>
-            <groupId>org.sonarsource.scanner.maven</groupId>
-            <artifactId>sonar-maven-plugin</artifactId>
-            <version>3.9.1.2184</version>
-        </plugin>
-        
-        <plugin>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>0.8.7</version>
-            <executions>
-                <execution>
-                    <goals>
-                        <goal>prepare-agent</goal>
-                    </goals>
-                </execution>
-                <execution>
-                    <id>report</id>
-                    <phase>test</phase>
-                    <goals>
-                        <goal>report</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
-    </plugins>
-</build>
-```
-
-### Pipeline CI/CD com Verificação de Qualidade
-
-#### .github/workflows/quality-check.yml
-```yaml
-name: AEM Java Quality Check
-
-on:
-  pull_request:
-    branches: [ main, develop ]
-  push:
-    branches: [ main ]
-
-jobs:
-  sonarqube-analysis:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        
-    - name: Set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        
-    - name: Cache Maven dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-        
-    - name: Run tests with coverage
-      run: mvn clean verify jacoco:report
-      
-    - name: SonarQube Analysis
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: |
-        mvn sonar:sonar \
-          -Dsonar.projectKey=aem-project \
-          -Dsonar.organization=mycompany \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONAR_TOKEN
-          
-    - name: Quality Gate Check
-      uses: sonarqube-quality-gate-action@master
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-```
-
-### Configuração de Regras Customizadas
-
-#### custom-rules.xml
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<profile>
-    <name>AEM Java Backend Rules</name>
-    <language>java</language>
-    
-    <!-- Regras críticas para AEM -->
-    <rules>
-        <!-- Resource Management -->
-        <rule>
-            <repositoryKey>java</repositoryKey>
-            <key>S2095</key>
-            <priority>BLOCKER</priority>
-        </rule>
-        
-        <!-- AEM Specific Rules -->
-        <rule>
-            <repositoryKey>AEM Rules</repositoryKey>
-            <key>AEM-6</key>
-            <priority>CRITICAL</priority>
-        </rule>
-        
-        <rule>
-            <repositoryKey>CQRules</repositoryKey>
-            <key>CQBP-72</key>
-            <priority>MAJOR</priority>
-        </rule>
-        
-        <!-- Security Rules -->
-        <rule>
-            <repositoryKey>java</repositoryKey>
-            <key>S2068</key>
-            <priority>BLOCKER</priority>
-        </rule>
-        
-        <!-- Threading Rules -->
-        <rule>
-            <repositoryKey>java</repositoryKey>
-            <key>S2168</key>
-            <priority>BLOCKER</priority>
-        </rule>
-        
-        <rule>
-            <repositoryKey>AEM Rules</repositoryKey>
-            <key>AEM-3</key>
-            <priority>CRITICAL</priority>
-        </rule>
-    </rules>
-</profile>
-```
-
----
+*Documento gerado automaticamente via MCP AEM Documentation + análise de CSVs*
+*Total de regras Java documentadas: 87*
+*Exemplos de código AEM-específicos: 25+*
+*Foco: Desenvolvimento Java Backend para AEM Cloud Service*

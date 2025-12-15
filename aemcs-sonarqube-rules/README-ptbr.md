@@ -44,251 +44,271 @@ As imagens abaixo mostram o processo real de configuração no Kiro IDE:
 
 ### 📋 Visão Geral dos Prompts
 
-Este repositório inclui **4 prompts especializados** que automatizam completamente a configuração e uso das regras SonarQube AEM:
+Este repositório inclui **4 prompts especializados** localizados em `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` que automatizam completamente a extração de regras SonarQube AEM:
 
-| Prompt | Função | Saída Principal |
-|--------|---------|-----------------|
-| **1. MCP Setup** | Configuração inicial | MCP AEM Documentation Server |
-| **2. Regras SonarQube** | Geração de regras | Arquivo com 127 regras atualizadas |
-| **3. Agent Hook** | Automação de análise | Hook para validação automática |
-| **4. Teste Prático** | Validação da configuração | Análise de código com 20 violações |
+| Prompt | Arquivo de Entrada | Arquivo de Saída | Conteúdo Gerado |
+|--------|-------------------|------------------|-----------------|
+| **1. Java Backend** | `prompt-aemcs-sonarqube-java-backend-rules-ptbr.md` | `output-aemcs-sonarqube-rules/java-backend-rules.md` | Regras Java/OSGi/Sling/JCR |
+| **2. Frontend** | `prompt-aemcs-sonarqube-frontend-rules-ptbr.md` | `output-aemcs-sonarqube-rules/frontend-rules.md` | Regras HTL/JS/CSS/ClientLibs |
+| **3. Content** | `prompt-aemcs-sonarqube-content-rules-ptbr.md` | `output-aemcs-sonarqube-rules/content-rules.md` | Regras JCR/Assets/Templates |
+| **4. Dispatcher/CDN** | `prompt-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md` | `output-aemcs-sonarqube-rules/dispatcher-cdn-rules.md` | Regras Apache/Fastly/Cache |
+
+### 📂 Estrutura de Arquivos Gerados
+
+Cada prompt da pasta `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` gera um arquivo específico na pasta `output-aemcs-sonarqube-rules/`:
+
+```
+output-aemcs-sonarqube-rules/
+├── java-backend-rules.md          # ← Gerado pelo Prompt 1
+├── frontend-rules.md               # ← Gerado pelo Prompt 2  
+├── content-rules.md                # ← Gerado pelo Prompt 3
+└── dispatcher-cdn-rules.md         # ← Gerado pelo Prompt 4
+```
 
 ---
 
-### 🔧 Prompt 1: Configuração MCP AEM Documentation
+### 🔧 Prompt 1: Regras Java Backend AEM
 
 ![Configuração usando Prompt do Kiro IDE](assets/images/config-mcp-aem-doc/01-configuration-mcp-aem-documentation-using-prompt-in-kiro-ide.png)
 
 ```bash
-run /ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation-mcp-ptbr.md
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-java-backend-rules-ptbr.md
 ```
 
-**🎯 Objetivo:** Configurar o servidor MCP para acesso à documentação oficial da Adobe
+**🎯 Objetivo:** Extrair regras SonarQube específicas para desenvolvimento Java backend no AEM
 
 **📤 Saídas do Prompt:**
-- ✅ **Arquivo de configuração MCP**: `.kiro/settings/mcp.json` com servidor AEM Documentation
-- ✅ **Verificação de pré-requisitos**: Validação de Docker e dependências
-- ✅ **Conexão ativa**: Servidor MCP rodando e conectado
-- ✅ **Ferramentas disponíveis**: 3 ferramentas MCP para busca na documentação AEM
+- ✅ **Arquivo gerado**: `output-aemcs-sonarqube-rules/java-backend-rules.md`
+- ✅ **Regras OSGi**: Configurações, serviços, componentes e lifecycle
+- ✅ **Regras Sling**: Models, servlets, recursos e adaptadores
+- ✅ **Regras JCR**: Repositório, nodes, propriedades e queries
+- ✅ **Regras Java AEM**: Padrões específicos do Adobe Experience Manager
+- ✅ **Exemplos práticos**: Código não-conforme e conforme para cada regra
 
-**📊 Resultado Esperado:**
-```json
-{
-  "mcpServers": {
-    "aem-documentation": {
-      "command": "docker",
-      "args": ["run", "--rm", "-p", "3000:3000", "aem-documentation-mcp"],
-      "disabled": false,
-      "autoApprove": ["read_documentation", "search_experience_league"]
-    }
-  }
-}
+**📊 Áreas Cobertas:**
+- **OSGi Services & Components**
+- **Sling Models & Servlets** 
+- **JCR Repository Access**
+- **AEM APIs & Best Practices**
+- **Resource Management**
+- **Security & Performance**
+
+---
+
+### 🎨 Prompt 2: Regras Frontend AEM
+
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-frontend-rules-ptbr.md
 ```
+
+**🎯 Objetivo:** Extrair regras SonarQube para desenvolvimento frontend no AEM
+
+**📤 Saídas do Prompt:**
+- ✅ **Arquivo gerado**: `output-aemcs-sonarqube-rules/frontend-rules.md`
+- ✅ **Regras HTL**: HTML Template Language, expressões e contextos
+- ✅ **Regras JavaScript**: Client-libs, ES6+, performance e segurança
+- ✅ **Regras CSS**: Preprocessors, responsividade e otimização
+- ✅ **Regras Touch UI**: Granite UI, Coral UI e componentes
+- ✅ **Regras Clientlibs**: Categorias, dependências e minificação
+
+**📊 Áreas Cobertas:**
+- **HTL (Sightly) Templates**
+- **JavaScript Client Libraries**
+- **CSS & SCSS Styling**
+- **Touch UI Components**
+- **Frontend Performance**
+- **Accessibility & SEO**
+
+---
+
+### 📄 Prompt 3: Regras de Conteúdo AEM
+
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-content-rules-ptbr.md
+```
+
+**🎯 Objetivo:** Extrair regras SonarQube para gestão de conteúdo no AEM
+
+**📤 Saídas do Prompt:**
+- ✅ **Arquivo gerado**: `output-aemcs-sonarqube-rules/content-rules.md`
+- ✅ **Regras JCR Content**: Estrutura de nodes, propriedades e hierarquia
+- ✅ **Regras Content Fragments**: Modelos, variações e GraphQL
+- ✅ **Regras Assets**: DAM, metadados, renditions e processamento
+- ✅ **Regras Templates**: Editáveis, políticas e estrutura
+- ✅ **Regras Workflows**: Modelos, launchers e custom steps
+
+**📊 Áreas Cobertas:**
+- **JCR Content Structure**
+- **Content Fragments & Models**
+- **Digital Asset Management**
+- **Editable Templates**
+- **Workflow Management**
+- **Multi-Site Manager (MSM)**
+
+---
+
+### 🚀 Prompt 4: Regras Dispatcher/CDN
+
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md
+```
+
+**🎯 Objetivo:** Extrair regras SonarQube para infraestrutura Dispatcher e CDN
+
+**📤 Saídas do Prompt:**
+- ✅ **Arquivo gerado**: `output-aemcs-sonarqube-rules/dispatcher-cdn-rules.md`
+- ✅ **Regras Dispatcher**: Configuração Apache, cache e filtros
+- ✅ **Regras Fastly CDN**: VCL, edge computing e performance
+- ✅ **Regras Caching**: Estratégias, invalidação e TTL
+- ✅ **Regras Security**: Headers, SSL/TLS e proteção DDoS
+- ✅ **Regras Performance**: Compressão, otimização e monitoramento
+
+**📊 Áreas Cobertas:**
+- **Apache Dispatcher Config**
+- **Fastly CDN & VCL**
+- **Caching Strategies**
+- **Security Headers**
+- **Performance Optimization**
+- **SSL/TLS Configuration**
 
 ![Resultado da Configuração MCP](assets/images/config-mcp-aem-doc/02-configuration-mcp-aem-documentation.png)
 
----
-
-### 📚 Prompt 2: Geração de Regras SonarQube AEM
-
-```bash
-run /ptbr/generate-sonarqube-rules/prompt-generate-aemcs-sonarqube-rules-ptbr.md
-```
-
-**🎯 Objetivo:** Extrair e organizar as 127 regras oficiais SonarQube para AEMaaCS
-
-**📤 Saídas do Prompt:**
-- ✅ **Arquivo de regras completo**: `aemcs-sonarqube-rules-ptbr.md` (127 regras)
-- ✅ **Categorização por tipo**: Vulnerabilidades, Bugs, Code Smells, Security Hotspots
-- ✅ **Exemplos de código**: Código não-conforme e conforme para cada regra crítica
-- ✅ **Migração de chaves**: Mapeamento completo squid:* → java:* (SonarQube 9.9)
-- ✅ **Regras Cloud Service**: Compatibilidade específica para AEMaaCS
-- ✅ **Estatísticas detalhadas**: Contadores por severidade e tipo
-
-**📊 Estrutura da Saída:**
-```markdown
-# Custom Code Quality Rules - AEM Cloud Service
-## 📊 Estatísticas
-- Total: 127 regras
-- Vulnerabilidades: 14
-- Security Hotspots: 6
-- Bugs: 32
-- Code Smells: 75
-
-## 🔴 Regras de Vulnerabilidade
-### java:S2254 - HttpServletRequest.getRequestedSessionId()
-#### Non-compliant code
-[código exemplo]
-#### Compliant code
-[código corrigido]
-```
-
-**🔄 Atualizações Incluídas:**
-- **SonarQube 9.9**: Regras atualizadas para Cloud Manager 2025.2.0
-- **Chaves migradas**: 45+ regras com novas chaves java:*
-- **Regras removidas**: 8 regras obsoletas identificadas e documentadas
-
----
-
-### 🤖 Prompt 3: Configuração Agent Hook
-
-```bash
-run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube-ptbr.md
-```
-
-**🎯 Objetivo:** Automatizar a análise de código Java usando as regras SonarQube AEM
-
-**📤 Saídas do Prompt:**
-- ✅ **Agent Hook configurado**: `.kiro/hooks/aem-code-quality-check.json`
-- ✅ **Trigger automático**: Ativação ao salvar arquivos `.java`
-- ✅ **Integração com regras**: Referência às 127 regras SonarQube AEM
-- ✅ **Feedback instantâneo**: Análise e sugestões de correção em tempo real
-- ✅ **Steering rules**: Regras de qualidade integradas ao contexto do Kiro
-
-**📊 Configuração do Hook:**
-```json
-{
-  "name": "AEM Code Quality Check",
-  "description": "Analisa código Java usando regras SonarQube AEM",
-  "trigger": {
-    "type": "file_save",
-    "filePattern": "**/*.java"
-  },
-  "action": {
-    "type": "agent_message",
-    "message": "Analise este arquivo Java usando as regras SonarQube AEM..."
-  }
-}
-```
-
-**🔍 Capacidades de Análise:**
-- **Detecção automática**: 20+ tipos de violações comuns
-- **Sugestões contextuais**: Correções específicas para AEM
-- **Prevenção de pipeline**: Identifica problemas antes do deploy
-- **Aprendizado contínuo**: Exemplos de boas práticas AEM
-
----
-
-### 🧪 Prompt 4: Teste e Validação
-
-```bash
-run /ptbr/test-configuration/prompt-test-aem-code-quality-setup-ptbr.md
-```
-
-**🎯 Objetivo:** Validar a configuração completa com análise de código real
-
-**📤 Saídas do Prompt:**
-- ✅ **Análise do arquivo de teste**: `example-test.java` com 20 violações intencionais
-- ✅ **Relatório detalhado**: Identificação de cada violação SonarQube
-- ✅ **Sugestões de correção**: Código corrigido para cada problema
-- ✅ **Validação do hook**: Confirmação de funcionamento automático
-- ✅ **Métricas de qualidade**: Score de qualidade antes/depois das correções
-
-**📊 Exemplo de Saída da Análise:**
-```
-🔍 ANÁLISE COMPLETA - example-test.java
-═══════════════════════════════════════
-
-📊 RESUMO DE VIOLAÇÕES ENCONTRADAS:
-┌─────────────────────────┬───────┬────────────┐
-│ Tipo                    │ Qtd   │ Severidade │
-├─────────────────────────┼───────┼────────────┤
-│ Vulnerabilidades        │ 3     │ Critical   │
-│ Bugs                    │ 8     │ Major      │
-│ Code Smells             │ 9     │ Minor      │
-└─────────────────────────┴───────┴────────────┘
-
-🔴 VIOLAÇÕES CRÍTICAS ENCONTRADAS:
-
-1. java:S2068 - Hard-coded password (Linha 15)
-   ❌ Problema: String password = "admin123";
-   ✅ Solução: Usar configuração OSGi ou variáveis de ambiente
-
-2. java:S2095 - Resource não fechado (Linha 23)
-   ❌ Problema: ResourceResolver não fechado
-   ✅ Solução: Usar try-with-resources
-
-3. CQRules:CQBP-72 - ResourceResolver leak (Linha 23)
-   ❌ Problema: resolver.close() não chamado
-   ✅ Solução: Implementar finally block
-```
-
-**🎯 Validação de Sucesso:**
-- **Hook funcionando**: ✅ Análise automática ao salvar
-- **Regras carregadas**: ✅ 127 regras SonarQube ativas
-- **MCP conectado**: ✅ Documentação AEM acessível
-- **Feedback instantâneo**: ✅ Sugestões de correção em tempo real
-
 ## 🧪 Testar a Configuração Completa
 
-### 🚀 Execução Sequencial dos 4 Prompts
+### 🚀 Execução dos 4 Prompts Especializados
 
-Execute os prompts na ordem para configuração completa:
+Execute os prompts para gerar regras específicas por área do AEM:
 
 ```bash
-# 1. Configurar MCP AEM Documentation
-run /ptbr/mcp/configure-aem-documentation-mcp/prompt-configure-aem-documentation-mcp-ptbr.md
+# 1. Regras Java Backend (OSGi, Sling, JCR)
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-java-backend-rules-ptbr.md
 
-# 2. Gerar regras SonarQube AEM
-run /ptbr/generate-sonarqube-rules/prompt-generate-aemcs-sonarqube-rules-ptbr.md
+# 2. Regras Frontend (HTL, JavaScript, CSS)
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-frontend-rules-ptbr.md
 
-# 3. Configurar Agent Hook
-run /ptbr/configure-agent-hook/prompt-configure-agent-hook-aemcs-analyser-sonarqube-ptbr.md
+# 3. Regras de Conteúdo (JCR, Content Fragments, Assets)
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-content-rules-ptbr.md
 
-# 4. Testar configuração
-run /ptbr/test-configuration/prompt-test-aem-code-quality-setup-ptbr.md
+# 4. Regras Dispatcher/CDN (Apache, Fastly, Caching)
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md
 ```
+
+### ⚡ Execução Paralela (Recomendado)
+
+Para acelerar o processo, execute cada prompt em **chats diferentes** simultaneamente:
+
+**Chat 1 - Backend:**
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-java-backend-rules-ptbr.md
+```
+
+**Chat 2 - Frontend:**
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-frontend-rules-ptbr.md
+```
+
+**Chat 3 - Content:**
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-content-rules-ptbr.md
+```
+
+**Chat 4 - Dispatcher:**
+```bash
+run .kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/prompt-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md
+```
+
+💡 **Dica:** Abra 4 chats no Kiro IDE e execute um prompt em cada para paralelizar as atividades e reduzir o tempo total de execução.
+
+### 📍 Localização dos Prompts
+
+Todos os prompts estão localizados no caminho:
+```
+/home/ubuntu-acer/Documents/aem/awesome-aem-code-quality/aemcs-sonarqube-rules/.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/
+```
+
+**Arquivos disponíveis:**
+- `prompt-aemcs-sonarqube-java-backend-rules-ptbr.md`
+- `prompt-aemcs-sonarqube-frontend-rules-ptbr.md` 
+- `prompt-aemcs-sonarqube-content-rules-ptbr.md`
+- `prompt-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md`
+
+**Pasta de saída:**
+```
+output-aemcs-sonarqube-rules/
+```
+
+Cada prompt gera automaticamente seu arquivo correspondente na pasta de saída com regras especializadas por área do AEM.
 
 ### ✅ Validação Final
 
-Após executar os 4 prompts, teste a configuração:
+Após executar os 4 prompts especializados da pasta `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/`:
 
-1. **Abra o arquivo de teste**: `identify-code-smells-using-rules-sonarqube-and-agent-hooks/example-test.java`
-2. **Salve o arquivo** (Ctrl+S)
-3. **Observe a análise automática**: O Agent Hook identificará **20 violações SonarQube** específicas para AEM
-4. **Revise as sugestões**: Correções contextuais baseadas nas regras oficiais da Adobe
+1. **Verifique os arquivos gerados**: Pasta `output-aemcs-sonarqube-rules/` com 4 arquivos especializados:
+   - `java-backend-rules.md` (Prompt 1)
+   - `frontend-rules.md` (Prompt 2) 
+   - `content-rules.md` (Prompt 3)
+   - `dispatcher-cdn-rules.md` (Prompt 4)
+
+2. **Revise cada arquivo específico**: Cada prompt gera regras especializadas para sua área do AEM
+3. **Use os arquivos por necessidade**: Consulte o arquivo específico da área que está desenvolvendo
+4. **Teste com código AEM**: Aplique as regras relevantes em projetos AEM existentes
+5. **Configure Agent Hooks**: Integre as regras ao fluxo de desenvolvimento por área
 
 ### 📈 Resultados Esperados
 
-- ✅ **MCP Server ativo**: Acesso à documentação oficial AEM
-- ✅ **127 regras carregadas**: Todas as regras SonarQube AEMaaCS
-- ✅ **Hook funcionando**: Análise automática ao salvar arquivos Java
-- ✅ **Feedback instantâneo**: Sugestões de correção em tempo real
-- ✅ **Prevenção de falhas**: Problemas identificados antes do pipeline
+- ✅ **4 arquivos especializados**: Um para cada área do AEM (Backend, Frontend, Content, Dispatcher)
+- ✅ **150+ regras especializadas**: Cobertura completa distribuída por área
+- ✅ **Documentação detalhada**: Exemplos práticos para cada regra por arquivo
+- ✅ **Consulta direcionada**: Acesse apenas o arquivo da área que está desenvolvendo
+- ✅ **Integração com MCP**: Acesso direto à documentação oficial Adobe
+- ✅ **Pronto para produção**: Regras validadas e testadas por especialidade
 
-## 📊 Regras SonarQube Incluídas
+## 📊 Regras SonarQube por Área AEM
 
-| Tipo | Quantidade | Exemplos | Prompt Responsável |
-|------|------------|----------|-------------------|
-| **Vulnerabilidades** | 14 | Senhas hardcoded, algoritmos fracos | Prompt 2 (Geração) |
-| **Security Hotspots** | 6 | Cookies inseguros, SQL injection | Prompt 2 (Geração) |
-| **Bugs** | 32 | Recursos não fechados, NPE | Prompt 2 (Geração) |
-| **Code Smells** | 75 | System.out, caminhos hardcoded | Prompt 2 (Geração) |
-| **Total** | **127 regras** | Compatível com AEMaaCS | **Todos os Prompts** |
+| Área | Prompt Responsável | Tipos de Regras | Exemplos |
+|------|-------------------|-----------------|----------|
+| **Java Backend** | Prompt 1 | OSGi, Sling, JCR, Security | ResourceResolver leaks, OSGi annotations |
+| **Frontend** | Prompt 2 | HTL, JavaScript, CSS, Performance | HTL expressions, clientlib dependencies |
+| **Content** | Prompt 3 | JCR Content, Assets, Templates | Node structure, Content Fragment models |
+| **Dispatcher/CDN** | Prompt 4 | Apache, Fastly, Caching, Security | Cache rules, security headers |
+| **Total Estimado** | **Todos os Prompts** | **150+ regras** | **Cobertura completa AEMaaCS** |
 
 ### 🔄 Fluxo de Trabalho dos Prompts
 
 ```mermaid
 graph TD
-    A[Prompt 1: MCP Setup] --> B[Prompt 2: Gerar Regras]
-    B --> C[Prompt 3: Agent Hook]
-    C --> D[Prompt 4: Teste]
+    A[Prompt 1: Java Backend] --> A1[java-backend-rules.md]
+    B[Prompt 2: Frontend] --> B1[frontend-rules.md]
+    C[Prompt 3: Content] --> C1[content-rules.md]
+    D[Prompt 4: Dispatcher/CDN] --> D1[dispatcher-cdn-rules.md]
     
-    A --> A1[MCP Server Ativo]
-    B --> B1[127 Regras Extraídas]
-    C --> C1[Análise Automática]
-    D --> D1[Validação Completa]
+    A1 --> F[Regras Especializadas por Área]
+    B1 --> F
+    C1 --> F
+    D1 --> F
+    
+    F --> G[Implementação em Projetos AEM]
 ```
 
-### 📁 Arquivos Gerados pelos Prompts
+### 📁 Mapeamento Completo: Prompts → Arquivos de Saída
 
-| Prompt | Arquivos Criados/Modificados | Descrição |
-|--------|------------------------------|-----------|
-| **1** | `.kiro/settings/mcp.json` | Configuração do servidor MCP AEM |
-| **2** | `aemcs-sonarqube-rules-ptbr.md` | 127 regras SonarQube organizadas |
-| **2** | `.kiro/steering/aemcs-sonarqube-rules.md` | Regras integradas ao contexto |
-| **3** | `.kiro/hooks/aem-code-quality.json` | Hook para análise automática |
-| **4** | Relatório de análise | Validação das 20 violações de teste |
+| Prompt de Entrada | Localização | Arquivo de Saída | Descrição |
+|-------------------|-------------|------------------|-----------|
+| **prompt-aemcs-sonarqube-java-backend-rules-ptbr.md** | `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` | `output-aemcs-sonarqube-rules/java-backend-rules.md` | Regras OSGi, Sling, JCR e Java AEM |
+| **prompt-aemcs-sonarqube-frontend-rules-ptbr.md** | `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` | `output-aemcs-sonarqube-rules/frontend-rules.md` | Regras HTL, JavaScript, CSS e Touch UI |
+| **prompt-aemcs-sonarqube-content-rules-ptbr.md** | `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` | `output-aemcs-sonarqube-rules/content-rules.md` | Regras JCR, Content Fragments e Assets |
+| **prompt-aemcs-sonarqube-dispatcher-and-cdn-fastly-rules-ptbr.md** | `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` | `output-aemcs-sonarqube-rules/dispatcher-cdn-rules.md` | Regras Apache, Fastly e Performance |
+
+### 🎯 Como Funciona o Mapeamento
+
+Cada prompt da pasta `.kiro/prompts/ptbr/mcp/use-aem-documentation-mcp/` é projetado para:
+
+1. **Conectar ao MCP AEM Documentation** para acessar fontes oficiais Adobe
+2. **Extrair regras específicas** da área de especialização (Backend, Frontend, Content, Dispatcher)
+3. **Gerar arquivo dedicado** na pasta `output-aemcs-sonarqube-rules/` com nome padronizado
+4. **Incluir exemplos práticos** de código conforme e não-conforme
+5. **Documentar contexto AEM** específico para cada regra extraída
+6. **Manter arquivos independentes** para consulta especializada por área
 
 ## 🎯 Benefícios dos 4 Prompts Integrados
 
