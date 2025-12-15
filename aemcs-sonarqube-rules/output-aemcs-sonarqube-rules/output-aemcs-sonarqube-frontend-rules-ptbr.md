@@ -1,4 +1,8 @@
-tl`  
+# Regras Frontend, UI/UX e Componentes - AEM Cloud Service
+
+**Última atualização:** 14 de dezembro de 2025
+**Categoria:** Frontend, UI/UX & Components Rules
+**Tecnologias:** `.html`, `.css`, `.js`, `.htl`, `.jsp`, clientlibs, componentes
 **Fontes:**
 - Adobe Experience League (documentação oficial via MCP)
 - CodeQuality-rules-latest-AMS-2024-12-0.csv
@@ -6,27 +10,27 @@ tl`
 
 ---
 
-## 📊 Estatísticas Frontend & Template
+## 📊 Estatísticas Frontend, UI/UX & Components
 
 | Tipo | Quantidade |
 |------|------------|
-| **Total Regras Frontend** | 12 |
-| **Regras UI** | 4 |
-| **Regras Template** | 3 |
-| **Regras Clientlib** | 1 |
-| **Regras Compatibilidade** | 4 |
+| **Total Regras Frontend & UI** | 6 |
+| **Regras Classic UI** | 2 |
+| **Regras Componentes** | 1 |
+| **Regras Client Libraries** | 1 |
+| **Regras HTL/Sightly** | 0 |
+| **Regras UI/UX** | 2 |
 
 ### Por Severidade
 
 | Severidade | Quantidade |
 |------------|------------|
-| **Blocker** | 1 |
-| **Major** | 0 |
-| **Minor** | 11 |
+| **Major** | 1 |
+| **Minor** | 5 |
 
 ---
 
-## 🎨 Regras de Interface (UI)
+## 🎨 Regras Classic UI
 
 ### ClassicUIAuthoringMode - Default Authoring Mode Should Not Be Classic UI
 
@@ -36,29 +40,33 @@ tl`
 | **Type** | Code Smell |
 | **Severity** | Minor |
 | **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2020.5.0 |
 
-**Descrição**: A configuração OSGi `com.day.cq.wcm.core.impl.AuthoringUIModeServiceImpl` define o modo de autoria padrão no AEM. Como a Classic UI foi deprecada desde o AEM 6.4, um problema é levantado quando o modo de autoria padrão é configurado para Classic UI.
+**Descrição**: O modo de autoria padrão não deve ser configurado para Classic UI, pois foi descontinuada desde o AEM 6.4 em favor da Touch UI.
+
+**Categoria**: Classic UI & Cloud Service Compatibility
+**Fonte**: Documentação oficial + CSV
 
 #### Configuração Non-compliant:
 ```xml
+<!-- OSGi Configuration -->
 <?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" 
+          xmlns:jcr="http://www.jcp.org/jcr/1.0"
     jcr:primaryType="sling:OsgiConfig"
-    AuthoringUIModeService.default.authoring.ui.mode="CLASSIC"/>
+    mode="classic"/>
 ```
 
 #### Configuração Compliant:
 ```xml
+<!-- OSGi Configuration -->
 <?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" 
+          xmlns:jcr="http://www.jcp.org/jcr/1.0"
     jcr:primaryType="sling:OsgiConfig"
-    AuthoringUIModeService.default.authoring.ui.mode="TOUCH"/>
+    mode="touch"/>
 ```
 
----
-
-### ComponentWithOnlyClassicUIDialog - Components Should Have Touch UI Dialogs
+### ComponentWithOnlyClassicUIDialog - Components With Dialogs Should Have Touch UI Dialogs
 
 | Atributo | Valor |
 |----------|-------|
@@ -66,213 +74,37 @@ tl`
 | **Type** | Code Smell |
 | **Severity** | Minor |
 | **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2020.5.0 |
 
-**Descrição**: Componentes AEM com um diálogo Classic UI também devem ter um diálogo Touch UI para autoria otimizada e compatibilidade com o modelo de deployment do Cloud Service, que não suporta Classic UI. Esta regra verifica os seguintes cenários:
+**Descrição**: Componentes AEM com diálogo Classic UI devem também ter um diálogo Touch UI para compatibilidade com o Cloud Service, que não suporta Classic UI.
 
-- Um componente com diálogo Classic UI (nó filho `dialog`) deve ter um diálogo Touch UI correspondente (nó filho `cq:dialog`)
-- Um componente com diálogo de design Classic UI (nó `design_dialog`) deve ter um diálogo de design Touch UI correspondente (nó filho `cq:design_dialog`)
-- Um componente com ambos os diálogos Classic UI deve ter ambos os diálogos Touch UI correspondentes
+**Categoria**: Classic UI & Cloud Service Compatibility
+**Fonte**: Documentação oficial + CSV
 
 #### Estrutura Non-compliant:
 ```
-+ apps
-  + myproject
-    + components
-      + mycomponent
-        + dialog [cq:Dialog]
-          - jcr:primaryType = "cq:Dialog"
-          - xtype = "panel"
-        // Falta cq:dialog para Touch UI
++ mycomponent
+  + dialog [cq:Dialog]
+    + items [cq:Widget]
+      + tabs [cq:TabPanel]
+        + items [cq:WidgetCollection]
+          + tab1 [cq:Panel]
 ```
 
 #### Estrutura Compliant:
 ```
-+ apps
-  + myproject
-    + components
-      + mycomponent
-        + dialog [cq:Dialog]
-          - jcr:primaryType = "cq:Dialog"
-          - xtype = "panel"
-        + cq:dialog [nt:unstructured]
-          - jcr:primaryType = "nt:unstructured"
-          - sling:resourceType = "cq/gui/components/authoring/dialog"
-```
-
-#### Exemplo HTL Touch UI Dialog:
-```html
-<div data-sly-use.dialog="com.adobe.cq.wcm.core.components.models.form.Container">
-    <coral-dialog variant="default">
-        <coral-dialog-header>
-            <coral-dialog-title>Component Configuration</coral-dialog-title>
-        </coral-dialog-header>
-        <coral-dialog-content>
-            <coral-tabview>
-                <coral-tablist>
-                    <coral-tab>Properties</coral-tab>
-                </coral-tablist>
-                <coral-panelstack>
-                    <coral-panel>
-                        <!-- Touch UI form fields -->
-                    </coral-panel>
-                </coral-panelstack>
-            </coral-tabview>
-        </coral-dialog-content>
-    </coral-dialog>
-</div>
++ mycomponent
+  + dialog [cq:Dialog]
+    + items [cq:Widget]
+      + tabs [cq:TabPanel]
+  + cq:dialog [nt:unstructured]
+    + content [granite/ui/components/coral/foundation/container]
+      + items [nt:unstructured]
+        + tabs [granite/ui/components/coral/foundation/tabs]
 ```
 
 ---
 
-### ReverseReplication - Reverse Replication Agents Should Not Be Used
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | ReverseReplication |
-| **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2020.5.0 |
-
-**Descrição**: Suporte para replicação reversa não está disponível em deployments do Cloud Service. Clientes usando replicação reversa devem contatar a Adobe para soluções alternativas.
-
-#### Configuração Non-compliant:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
-    jcr:primaryType="cq:ReplicationAgent"
-    enabled="{Boolean}true"
-    transportUri="http://localhost:4503/bin/receive?sling:authRequestLogin=1"
-    transportUser="admin"
-    transportPassword="admin"
-    reverseReplication="{Boolean}true"/>
-```
-
-#### Alternativa Compliant (Event-based):
-```java
-@Component(service = EventHandler.class, immediate = true,
-    property = {
-        EventConstants.EVENT_TOPIC + "=" + ReplicationEvent.EVENT_TOPIC
-    })
-public class CustomReplicationHandler implements EventHandler {
-    
-    @Override
-    public void handleEvent(Event event) {
-        // Handle replication events without reverse replication
-        String path = (String) event.getProperty("path");
-        // Custom logic for content synchronization
-    }
-}
-```
-
----
-
-### ConfigAndInstallShouldOnlyContainOsgiNodes - Config and Install Folders Should Only Contain OSGi Nodes
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | ConfigAndInstallShouldOnlyContainOsgiNodes |
-| **Type** | Bug |
-| **Severity** | Major |
-| **Tags** | aem |
-| **Since** | Version 2019.6.0 |
-
-**Descrição**: Por razões de segurança, caminhos contendo `/config/` e `/install/` são legíveis apenas por usuários administrativos no AEM e devem ser usados apenas para configuração OSGi e bundles OSGi. Um problema comum é o uso de nós chamados `config` dentro de caixas de diálogo de componentes ou ao especificar a configuração do rich text editor para edição inline.
-
-#### Estrutura Non-compliant:
-```
-+ cq:editConfig [cq:EditConfig]
-  + cq:inplaceEditing [cq:InplaceEditConfig]
-    + config [nt:unstructured]
-      + rtePlugins [nt:unstructured]
-        + format [nt:unstructured]
-          - features = ["bold", "italic"]
-```
-
-#### Estrutura Compliant:
-```
-+ cq:editConfig [cq:EditConfig]
-  + cq:inplaceEditing [cq:InplaceEditConfig]
-    ./configPath = "inplaceEditingConfig" (String)
-    + inplaceEditingConfig [nt:unstructured]
-      + rtePlugins [nt:unstructured]
-        + format [nt:unstructured]
-          - features = ["bold", "italic"]
-```
-
----
-
-## 📄 Regras de Templates
-
-### StaticTemplateUsage - Usage of Static Templates is Discouraged
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | StaticTemplateUsage |
-| **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2021.2.0 |
-
-**Descrição**: Embora o uso de templates estáticos tenha sido historicamente comum em projetos AEM, templates editáveis são altamente recomendados pois fornecem mais flexibilidade e suportam recursos adicionais não presentes em templates estáticos. A migração de templates estáticos para editáveis pode ser amplamente automatizada usando as AEM Modernization Tools.
-
-#### Template Estático Non-compliant:
-```html
-<%@include file="/libs/foundation/global.jsp"%>
-<%@page session="false" %>
-<html>
-<head>
-    <title>Static Template</title>
-    <cq:include script="/libs/wcm/core/components/init/init.jsp"/>
-</head>
-<body>
-    <div class="page">
-        <cq:include path="content" resourceType="foundation/components/parsys"/>
-    </div>
-</body>
-</html>
-```
-
-#### Template Editável Compliant (HTL):
-```html
-<template data-sly-template.page="${@ wcmmode}">
-    <div class="page" data-sly-use.page="com.example.models.PageModel">
-        <sly data-sly-use.template="core/wcm/components/commons/v1/templates.html"/>
-        <sly data-sly-call="${template.page @ page=page}"/>
-        
-        <main class="main-content">
-            <div data-sly-resource="${'content' @ resourceType='wcm/foundation/components/parsys'}"></div>
-        </main>
-    </div>
-</template>
-```
-
-#### Configuração Template Editável:
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
-    jcr:primaryType="cq:Template"
-    jcr:title="Editable Page Template"
-    status="enabled"
-    ranking="{Long}100">
-    <jcr:content
-        jcr:primaryType="cq:PageContent"
-        sling:resourceType="myproject/components/page"/>
-    <policies jcr:primaryType="nt:unstructured">
-        <jcr:content
-            jcr:primaryType="nt:unstructured"
-            sling:resourceType="wcm/core/components/policies/mappings">
-            <content
-                jcr:primaryType="nt:unstructured"
-                sling:resourceType="wcm/core/components/policies/mapping"
-                cq:policy="myproject/components/policies/content"/>
-        </jcr:content>
-    </policies>
-</jcr:root>
-```
-
----
+## 🧩 Regras de Componentes
 
 ### LegacyFoundationComponentUsage - Usage of Legacy Foundation Components is Discouraged
 
@@ -282,98 +114,41 @@ public class CustomReplicationHandler implements EventHandler {
 | **Type** | Code Smell |
 | **Severity** | Minor |
 | **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2021.2.0 |
 
-**Descrição**: Os Foundation Components legados (componentes sob `/libs/foundation`) foram deprecados por várias releases do AEM em favor dos Core Components. O uso dos Foundation Components legados como base para componentes customizados, seja por overlay ou herança, é desencorajado e deve ser convertido para o core component correspondente.
+**Descrição**: O uso de Foundation Components legados (componentes sob `/libs/foundation`) foi descontinuado em favor dos Core Components.
 
-#### Uso Non-compliant (Foundation Component):
-```html
-<div data-sly-use.text="foundation/components/text">
-    <div class="text">
-        ${text.text @ context='html'}
-    </div>
+**Categoria**: Components & Cloud Service Compatibility
+**Fonte**: Documentação oficial + CSV
+
+#### Código Non-compliant:
+```htl
+<!-- Usando Foundation Component -->
+<div data-sly-resource="${'text' @ resourceType='/libs/foundation/components/text'}">
 </div>
+
+<!-- Herança de Foundation Component -->
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+    jcr:primaryType="cq:Component"
+    sling:resourceSuperType="foundation/components/text"/>
 ```
 
-#### Uso Compliant (Core Component):
-```html
-<div data-sly-use.text="core/wcm/components/text/v2/text">
-    <div class="cmp-text" data-cmp-is="text">
-        <div class="cmp-text__richtext" data-sly-test="${text.richText}">
-            ${text.text @ context='html'}
-        </div>
-        <div class="cmp-text__plaintext" data-sly-test="${!text.richText}">
-            ${text.text @ context='text'}
-        </div>
-    </div>
+#### Código Compliant:
+```htl
+<!-- Usando Core Component -->
+<div data-sly-resource="${'text' @ resourceType='core/wcm/components/text/v2/text'}">
 </div>
-```
 
-#### Migração de Componente Customizado:
-```java
-// Non-compliant: Extending Foundation Component
-@Model(adaptables = Resource.class)
-public class CustomText extends com.day.cq.wcm.foundation.Text {
-    // Custom implementation
-}
-
-// Compliant: Using Core Component
-@Model(adaptables = {SlingHttpServletRequest.class, Resource.class})
-public class CustomText implements ComponentExporter {
-    
-    @Self
-    private SlingHttpServletRequest request;
-    
-    @Inject
-    private com.adobe.cq.wcm.core.components.models.Text coreText;
-    
-    public String getText() {
-        return coreText.getText();
-    }
-    
-    @Override
-    public String getExportedType() {
-        return "myproject/components/text";
-    }
-}
+<!-- Herança de Core Component -->
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0"
+    jcr:primaryType="cq:Component"
+    sling:resourceSuperType="core/wcm/components/text/v2/text"/>
 ```
 
 ---
 
-### ImmutableMutableMixedPackage - Packages Should Not Mix Mutable and Immutable Content
+## 📚 Regras Client Libraries
 
-| Atributo | Valor |
-|----------|-------|
-| **Key** | ImmutableMutableMixedPackage |
-| **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | aem, cloud-service-compatibility |
-
-**Descrição**: Pacotes não devem misturar conteúdo mutável e imutável. Conteúdo imutável (como código, templates, componentes) deve ser separado do conteúdo mutável (como páginas, assets).
-
-#### Estrutura Non-compliant:
-```
-+ myproject-all.zip
-  + apps/myproject/components/  (imutável)
-  + content/myproject/pages/    (mutável)
-  + etc/designs/myproject/      (imutável)
-```
-
-#### Estrutura Compliant:
-```
-+ myproject-code.zip
-  + apps/myproject/components/  (apenas imutável)
-  + etc/designs/myproject/
-
-+ myproject-content.zip  
-  + content/myproject/pages/    (apenas mutável)
-```
-
----
-
-## 📚 Regras Clientlib
-
-### ClientlibProxyResource - Resources in Proxy-Enabled Client Libraries Should Be in Resources Folder
+### ClientlibProxyResource - Resources Contained in Proxy-Enabled Client Libraries Should Be in a folder named resources
 
 | Atributo | Valor |
 |----------|-------|
@@ -381,9 +156,11 @@ public class CustomText implements ComponentExporter {
 | **Type** | Bug |
 | **Severity** | Minor |
 | **Tags** | aem |
-| **Since** | Version 2021.2.0 |
 
-**Descrição**: Bibliotecas de cliente AEM podem conter recursos estáticos como imagens e fontes. Ao usar bibliotecas de cliente com proxy, esses recursos estáticos devem estar em uma pasta filha chamada `resources` para serem efetivamente referenciados nas instâncias de publicação.
+**Descrição**: Quando usando client libraries com proxy habilitado, recursos estáticos como imagens e fontes devem estar contidos em uma pasta filha chamada `resources` para serem referenciados efetivamente nas instâncias de publicação.
+
+**Categoria**: Client Libraries & Performance
+**Fonte**: Documentação oficial + CSV
 
 #### Estrutura Non-compliant:
 ```
@@ -391,14 +168,10 @@ public class CustomText implements ComponentExporter {
   + projectA
     + clientlib
       - allowProxy=true
-      - categories="[myproject.base]"
-      + css
-        - base.css
-      + js  
-        - main.js
       + images
-        + logo.png
-        + background.jpg
+        + myimage.jpg
+      + fonts
+        + myfont.woff
 ```
 
 #### Estrutura Compliant:
@@ -407,252 +180,462 @@ public class CustomText implements ComponentExporter {
   + projectA
     + clientlib
       - allowProxy=true
-      - categories="[myproject.base]"
-      + css
-        - base.css
-      + js
-        - main.js  
       + resources
         + images
-          + logo.png
-          + background.jpg
+          + myimage.jpg
+        + fonts
+          + myfont.woff
 ```
 
-#### Exemplo CSS com Recursos:
+#### Referência CSS Compliant:
 ```css
-/* Non-compliant: referência direta */
-.header {
-    background-image: url('../images/logo.png');
+/* CSS referenciando recursos */
+.my-component {
+    background-image: url('resources/images/myimage.jpg');
+    font-family: 'MyFont', sans-serif;
 }
 
-/* Compliant: referência via resources */
-.header {
-    background-image: url('../resources/images/logo.png');
-}
-```
-
-#### Configuração Clientlib:
-```
-#base=.
-categories=[myproject.base]
-allowProxy=true
-
-# CSS files
-css/base.css
-css/components.css
-
-# JavaScript files  
-js/main.js
-js/utils.js
-
-# Resources (images, fonts, etc.)
-resources/images/logo.png
-resources/fonts/custom-font.woff2
-```
-
----
-
-## ☁️ Regras Compatibilidade Cloud Service UI
-
-### CloudServiceIncompatibleWorkflowProcess - Usage of Cloud Service Incompatible Workflow Processes
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | CloudServiceIncompatibleWorkflowProcess |
-| **Type** | Code Smell |
-| **Severity** | Blocker |
-| **Tags** | aem, cloud-service-compatibility |
-| **Since** | Version 2021.2.0 |
-
-**Descrição**: Com a mudança para Asset micro-services para processamento de assets no AEM Cloud Service, vários processos de workflow que eram usados em versões on-premise e AMS do AEM tornaram-se não suportados ou desnecessários. Isso inclui workflows relacionados à interface de usuário e processamento de assets.
-
-#### Processos Workflow Non-compliant:
-```xml
-<!-- Workflow model com processos incompatíveis -->
-<jcr:root xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0"
-    jcr:primaryType="cq:WorkflowModel"
-    jcr:title="Asset Processing Workflow">
-    <nodes jcr:primaryType="nt:unstructured">
-        <node0
-            jcr:primaryType="cq:WorkflowNode"
-            title="DAM Update Asset"
-            type="PROCESS"
-            process="com.day.cq.dam.core.process.DamUpdateAssetWorkflowProcess"/>
-        <node1
-            jcr:primaryType="cq:WorkflowNode" 
-            title="Create Renditions"
-            type="PROCESS"
-            process="com.day.cq.dam.core.process.CreateRenditionsProcess"/>
-    </nodes>
-</jcr:root>
-```
-
-#### Alternativa Compliant (Asset Processing Profiles):
-```xml
-<!-- Processing Profile para Cloud Service -->
-<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0"
-    jcr:primaryType="dam:AssetProcessingProfile"
-    jcr:title="Custom Asset Processing">
-    <renditions jcr:primaryType="nt:unstructured">
-        <web
-            jcr:primaryType="dam:AssetRendition"
-            fmt="jpeg"
-            width="1200"
-            height="800"
-            quality="85"/>
-        <thumbnail
-            jcr:primaryType="dam:AssetRendition"
-            fmt="jpeg"
-            width="300"
-            height="200"
-            quality="90"/>
-    </renditions>
-</jcr:root>
-```
-
----
-
-### SupportedRunmode - Only Supported Runmode Names Should Be Used
-
-| Atributo | Valor |
-|----------|-------|
-| **Key** | SupportedRunmode |
-| **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | aem, cloud-service-compatibility |
-
-**Descrição**: Apenas nomes de runmode suportados devem ser usados no AEM Cloud Service. Runmodes customizados ou não suportados podem causar problemas de deployment.
-
-#### Runmodes Non-compliant:
-```
-+ apps
-  + myproject
-    + config.dev        // runmode customizado não suportado
-    + config.staging    // runmode customizado não suportado  
-    + config.prod       // runmode customizado não suportado
-```
-
-#### Runmodes Compliant:
-```
-+ apps
-  + myproject
-    + config                    // configuração padrão
-    + config.author             // runmode suportado
-    + config.publish            // runmode suportado
-    + config.author.dev         // combinação suportada
-    + config.publish.stage      // combinação suportada
-    + config.author.prod        // combinação suportada
-    + config.publish.prod       // combinação suportada
-```
-
-#### Exemplo Configuração OSGi por Runmode:
-```xml
-<!-- config.author/com.example.MyService.cfg.json -->
-{
-  "service.enabled": true,
-  "author.specific.setting": "value"
-}
-
-<!-- config.publish/com.example.MyService.cfg.json -->
-{
-  "service.enabled": true,
-  "publish.specific.setting": "value"
+@font-face {
+    font-family: 'MyFont';
+    src: url('resources/fonts/myfont.woff') format('woff');
 }
 ```
 
 ---
 
-## 🔧 Regras de Configuração UI
+## 🎯 Regras de Acessibilidade & UX
 
-### CQRules:CQBP-71 - Do not hardcode paths using String literals
+### Accessibility Best Practices - Texto Alternativo para Imagens
 
 | Atributo | Valor |
 |----------|-------|
-| **Key** | CQRules:CQBP-71 |
-| **Type** | Code Smell |
-| **Severity** | Minor |
-| **Tags** | cqsoftwarequality |
-| **Since** | Version 2018.4.0 |
+| **Categoria** | Accessibility & UX |
+| **Tecnologia** | HTML, WCAG |
+| **Foco** | Acessibilidade, SEO, UX |
 
-**Descrição**: Caminhos começando com `/libs` e `/apps` geralmente não devem ser hardcoded em componentes e templates. Esses caminhos são tipicamente armazenados relativos ao caminho de busca do Sling.
+**Descrição**: Garantir que todas as imagens tenham texto alternativo apropriado para acessibilidade e conformidade com WCAG.
 
 #### Código Non-compliant:
-```java
-// Em um modelo Sling
-public boolean isTextComponent(Resource resource) {
-    return resource.isResourceType("/libs/foundation/components/text");
+```html
+<!-- Imagem sem alt text -->
+<img src="/content/dam/mysite/hero.jpg">
+
+<!-- Alt text vazio inadequado -->
+<img src="/content/dam/mysite/logo.png" alt="">
+
+<!-- Alt text genérico -->
+<img src="/content/dam/mysite/product.jpg" alt="image">
+```
+
+#### Código Compliant:
+```html
+<!-- Alt text descritivo -->
+<img src="/content/dam/mysite/hero.jpg" 
+     alt="Equipe trabalhando em escritório moderno com laptops">
+
+<!-- Imagem decorativa -->
+<img src="/content/dam/mysite/decoration.png" 
+     alt="" role="presentation">
+
+<!-- Logo com contexto -->
+<img src="/content/dam/mysite/logo.png" 
+     alt="Logo da Empresa XYZ - Página inicial">
+```
+
+### Responsive Design Best Practices - Otimização para Dispositivos Móveis
+
+| Atributo | Valor |
+|----------|-------|
+| **Categoria** | Responsive & Performance |
+| **Tecnologia** | HTML, CSS, Images |
+| **Foco** | Performance, Mobile, Core Web Vitals |
+
+**Descrição**: Otimizar imagens e layout para diferentes dispositivos e resoluções usando AEM Dynamic Media e técnicas responsivas.
+
+#### Código Non-compliant:
+```html
+<!-- Imagem fixa sem otimização -->
+<img src="/content/dam/mysite/large-image.jpg" width="100%">
+
+<!-- CSS não responsivo -->
+<style>
+.container {
+    width: 1200px;
+    margin: 0 auto;
+}
+</style>
+```
+
+#### Código Compliant:
+```html
+<!-- Imagens responsivas com srcset -->
+<picture>
+  <source media="(max-width: 768px)" 
+          srcset="/content/dam/mysite/image.jpg?width=768&quality=85">
+  <source media="(max-width: 1200px)" 
+          srcset="/content/dam/mysite/image.jpg?width=1200&quality=85">
+  <img src="/content/dam/mysite/image.jpg?width=1920&quality=85" 
+       alt="Descrição da imagem" 
+       loading="lazy">
+</picture>
+
+<!-- CSS responsivo -->
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
 }
 
-// Em HTL template
-<div data-sly-test="${resource.resourceType == '/apps/myproject/components/text'}">
-    <!-- content -->
+@media (max-width: 768px) {
+    .container {
+        padding: 0 0.5rem;
+    }
+}
+</style>
+```
+
+---
+
+## 🔧 Regras HTL/Sightly
+
+### HTL Best Practices - Evitar Scriptlets Java
+
+| Atributo | Valor |
+|----------|-------|
+| **Categoria** | HTL/Sightly Best Practices |
+| **Tecnologia** | HTL, Sling Models |
+| **Foco** | Separação de responsabilidades, Manutenibilidade |
+
+**Descrição**: Evitar uso de scriptlets Java em templates HTL, preferindo Use-API ou Sling Models para lógica de negócio.
+
+#### Código Non-compliant:
+```htl
+<!-- Scriptlet Java em HTL -->
+<%
+  String title = properties.get("jcr:title", "");
+  if (title.isEmpty()) {
+    title = "Título Padrão";
+  }
+%>
+<h1><%= title %></h1>
+
+<!-- Lógica complexa no template -->
+<div data-sly-test="${resource.resourceType == 'mysite/components/text'}">
+  <p data-sly-test="${properties.text && properties.text.length > 100}">
+    ${properties.text @ context='html'}
+  </p>
 </div>
 ```
 
 #### Código Compliant:
-```java
-// Usando caminho relativo
-public boolean isTextComponent(Resource resource) {
-    return resource.isResourceType("foundation/components/text");
-}
+```htl
+<!-- Usando Sling Model -->
+<div data-sly-use.model="com.mysite.models.TitleModel">
+  <h1>${model.title || 'Título Padrão'}</h1>
+</div>
 
-// Em HTL template
-<div data-sly-test="${resource.resourceType == 'myproject/components/text'}">
-    <!-- content -->
+<!-- Lógica no Sling Model -->
+<div data-sly-use.textModel="com.mysite.models.TextModel">
+  <p data-sly-test="${textModel.shouldDisplay}">
+    ${textModel.formattedText @ context='html'}
+  </p>
 </div>
 ```
 
-#### Exemplo HTL com Caminhos Relativos:
-```html
-<template data-sly-template.component="${@ resourceType}">
-    <sly data-sly-resource="${'.' @ resourceType=resourceType}"/>
-</template>
-
-<!-- Uso do template -->
-<sly data-sly-call="${component @ resourceType='core/wcm/components/text/v2/text'}"/>
+#### Sling Model Correspondente:
+```java
+@Model(adaptables = Resource.class)
+public class TitleModel {
+    
+    @ValueMapValue
+    @Default(values = "Título Padrão")
+    private String title;
+    
+    public String getTitle() {
+        return StringUtils.isNotBlank(title) ? title : "Título Padrão";
+    }
+}
 ```
 
 ---
 
-## 📚 Referências Frontend & Template
+## 📱 Regras Performance Frontend
+
+### Performance Optimization - Lazy Loading e Otimização de Recursos
+
+| Atributo | Valor |
+|----------|-------|
+| **Categoria** | Performance & Loading |
+| **Tecnologia** | HTML, JavaScript, CSS |
+| **Foco** | Core Web Vitals, Loading Performance |
+
+**Descrição**: Implementar lazy loading e otimização de recursos para melhorar performance e Core Web Vitals.
+
+#### Código Non-compliant:
+```html
+<!-- Carregamento síncrono de recursos -->
+<script src="/etc/clientlibs/mysite/js/heavy-library.js"></script>
+<link rel="stylesheet" href="/etc/clientlibs/mysite/css/all-styles.css">
+
+<!-- Imagens sem lazy loading -->
+<img src="/content/dam/mysite/large-image.jpg">
+```
+
+#### Código Compliant:
+```html
+<!-- Carregamento assíncrono -->
+<script src="/etc/clientlibs/mysite/js/critical.js"></script>
+<script async src="/etc/clientlibs/mysite/js/non-critical.js"></script>
+
+<!-- CSS crítico inline, não-crítico assíncrono -->
+<style>
+/* CSS crítico inline */
+.above-fold { display: block; }
+</style>
+<link rel="preload" href="/etc/clientlibs/mysite/css/non-critical.css" 
+      as="style" onload="this.onload=null;this.rel='stylesheet'">
+
+<!-- Lazy loading de imagens -->
+<img src="/content/dam/mysite/placeholder.jpg" 
+     data-src="/content/dam/mysite/large-image.jpg"
+     loading="lazy" 
+     alt="Descrição da imagem">
+```
+
+---
+
+## 📚 Referências Frontend, UI/UX & Components
 
 ### Documentação Oficial
-- [Page Templates - Editable](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/platform/templates/page-templates-editable)
-- [Using Client-Side Libraries](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/clientlibs)
-- [HTL Specification](https://experienceleague.adobe.com/en/docs/experience-manager-htl/content/specification)
-- [Touch UI Dialogs](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/components/touch-ui-concepts)
+- [HTL/Sightly Specification](https://experienceleague.adobe.com/en/docs/experience-manager-htl/content/specification)
 - [AEM Core Components](https://experienceleague.adobe.com/en/docs/experience-manager-core-components/using/introduction)
+- [Client-Side Libraries](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/clientlibs)
+- [Touch UI Development](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/introduction/touch-ui-concepts)
+- [AEM Responsive Design](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/sites/developing/responsive)
 
-### Ferramentas
-- [AEM Core Components](https://github.com/adobe/aem-core-wcm-components)
+### Ferramentas Frontend
+- [AEM Developer Tools](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/tools/developer-mode)
+- [HTL REPL](https://github.com/adobe/htl-repl)
+- [Core Components Library](https://www.aemcomponents.dev/)
 - [AEM Modernization Tools](https://opensource.adobe.com/aem-modernize-tools/)
-- [AEM Project Archetype](https://github.com/adobe/aem-project-archetype)
 
-### Guias de Migração
-- [Classic UI to Touch UI Migration](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/components/touch-ui-migration)
-- [Foundation Components to Core Components](https://experienceleague.adobe.com/en/docs/experience-manager-learn/getting-started-wknd-tutorial-develop/project-archetype/component-basics)
+### Padrões & Guidelines
+- [AEM Style System](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/sites/authoring/siteandpage/style-system)
+- [Editable Templates](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/platform/templates/page-templates-editable)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [AEM Accessibility Checklist](https://experienceleague.adobe.com/en/docs/experience-manager-cloud-service/content/compliance/accessibility/quick-guide-wcag)
 
----
-
-## 🔄 Changelog Frontend & Template
-
-### Versão 2025.2.0 (Fevereiro 2025)
-- Atualização para SonarQube 9.9
-- Migração de chaves `squid:*` para `java:*` (não afeta regras Frontend)
-- Novas regras de compatibilidade Cloud Service
-
-### Versão 2021.2.0
-- Introdução das regras `StaticTemplateUsage` e `LegacyFoundationComponentUsage`
-- Nova regra `ClientlibProxyResource` para bibliotecas de cliente
-- Regras de compatibilidade Cloud Service expandidas
-
-### Versão 2020.5.0  
-- Introdução das regras `ClassicUIAuthoringMode` e `ComponentWithOnlyClassicUIDialog`
-- Foco em migração de Classic UI para Touch UI
-- Regras de compatibilidade Cloud Service iniciais
+### Migração e Modernização
+- [Classic UI to Touch UI Migration](https://opensource.adobe.com/aem-modernize-tools/)
+- [Foundation Components to Core Components](https://experienceleague.adobe.com/en/docs/experience-manager-core-components/using/developing/archetype/using.html)
+- [Static to Editable Templates](https://experienceleague.adobe.com/en/docs/experience-manager-65/content/implementing/developing/platform/templates/page-templates-editable)
 
 ---
 
-*Última atualização: 14 de Dezembro de 2025*  
-*Gerado via MCP AEM Documentation + análise de CSVs*  
-*Categoria: Frontend & Template Rules*
+*Última atualização: 14 de dezembro de 2025*
+*Gerado via MCP AEM Documentation + análise de CSVs*
+*Categoria: Frontend, UI/UX & Components Rules*id-item {
+    flex: 1;
+    margin: 20px;
+}
+
+@media (max-width: 768px) {
+    .grid {
+        flex-direction: column;
+    }
+    .grid-item {
+        margin: 10px 0;
+    }
+}
+```
+
+#### CSS Compliant:
+```css
+/* Mobile-first approach */
+.container {
+    width: 100%;
+    padding: 1rem;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .container {
+        max-width: 1200px;
+        padding: 2rem;
+    }
+}
+
+.grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.grid-item {
+    flex: 1;
+}
+
+@media (min-width: 768px) {
+    .grid {
+        flex-direction: row;
+        gap: 2rem;
+    }
+}
+```
+
+### Touch-Friendly Interfaces
+
+| Atributo | Valor |
+|----------|-------|
+| **Categoria** | Touch UX |
+| **Tecnologia** | CSS, HTML |
+| **Foco** | Touch targets, Mobile usability |
+
+**Descrição**: Criar interfaces amigáveis para touch com targets adequados e feedback visual.
+
+#### CSS Non-compliant:
+```css
+/* Targets muito pequenos */
+.button {
+    padding: 2px 4px;
+    font-size: 12px;
+}
+
+.nav-link {
+    display: inline;
+    padding: 5px;
+}
+
+/* Sem feedback de touch */
+.card {
+    cursor: pointer;
+}
+```
+
+#### CSS Compliant:
+```css
+/* Touch targets adequados (mínimo 44px) */
+.button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.nav-link {
+    display: block;
+    padding: 12px 16px;
+    min-height: 44px;
+    text-decoration: none;
+}
+
+/* Feedback visual para touch */
+.card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover,
+.card:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Estados de loading */
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.button.loading {
+    position: relative;
+    color: transparent;
+}
+
+.button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #fff;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+```
+
+---
+
+## 🚀 Regras de Performance Frontend
+
+### Critical CSS e Resource Loading
+
+| Atributo | Valor |
+|----------|-------|
+| **Categoria** | Loading Performance |
+| **Tecnologia** | HTML, CSS |
+| **Foco** | First Contentful Paint, Core Web Vitals |
+
+**Descrição**: Otimizar carregamento de CSS crítico e recursos para melhorar métricas de performance.
+
+#### HTML Non-compliant:
+```html
+<!-- CSS bloqueante -->
+<link rel="stylesheet" href="/etc/clientlibs/mysite/css/all-styles.css">
+<link rel="stylesheet" href="/etc/clientlibs/mysite/css/components.css">
+<link rel="stylesheet" href="/etc/clientlibs/mysite/css/layout.css">
+
+<!-- JavaScript bloqueante -->
+<script src="/etc/clientlibs/mysite/js/jquery.js"></script>
+<script src="/etc/clientlibs/mysite/js/components.js"></script>
+```
+
+#### HTML Compliant:
+```html
+<!-- CSS crítico inline -->
+<style>
+/* Critical CSS - above the fold */
+body { margin: 0; font-family: Arial, sans-serif; }
+.header { background: #fff; padding: 1rem; }
+.hero { min-height: 50vh; background: #f5f5f5; }
+</style>
+
+<!-- CSS não-crítico com preload -->
+<link rel="preload" href="/etc/clientlibs/mysite/css/non-critical.css" 
+      as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript>
+    <link rel="stylesheet" href="/etc/clientlibs/mysite/css/non-critical.css">
+</noscript>
+
+<!-- JavaScript otimizado -->
+<script>
+// Critical JavaScript inline
+document.documentElement.className += ' js-enabled';
+</script>
+
+<!-- Non-critical JavaScript -->
+<script async src="/etc/clientlibs/mysite/js/components.js"></script>
+<script defer src="/etc/clientlibs/mysite/js/analytics.js"></script>
+```
+
+---
+
+*Última atualização: 14 de dezembro de 2025*
+*Gerado via MCP AEM Documentation + análise de CSVs*
+*Categoria: Frontend, UI/UX & Components Rules*
