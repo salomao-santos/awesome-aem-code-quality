@@ -1,0 +1,148 @@
+Rule Key,Description,Type,Severity,Tags
+squid:S2068,Credentials should not be hard-coded,Vulnerability,Blocker,"cert,cwe,owasp-a2,sans-top25-porous"
+squid:S2258,"""javax.crypto.NullCipher"" should not be used for anything other than testing",Vulnerability,Blocker,"cwe,owasp-a6,sans-top25-porous"
+squid:S2278,Neither DES (Data Encryption Standard) nor DESede (3DES) should be used,Vulnerability,Blocker,"cert,cwe,owasp-a6,sans-top25-porous"
+squid:S3369,Security constraints should be defined,Vulnerability,Blocker,"cwe,jee,owasp-a5,websphere"
+squid:S3374,Struts validation forms should have unique names,Vulnerability,Blocker,"cwe,struts"
+squid:S2070,SHA-1 and Message-Digest hash algorithms should not be used,Vulnerability,Critical,"cwe,owasp-a6,sans-top25-porous"
+squid:S2077,SQL binding mechanisms should be used,Vulnerability,Critical,"cert,cwe,hibernate,owasp-a1,sans-top25-insecure,sql"
+squid:S2089,HTTP referers should not be relied on,Vulnerability,Critical,"cwe,owasp-a2,sans-top25-porous"
+squid:S2245,Pseudorandom number generators (PRNGs) should not be used in secure contexts,Vulnerability,Critical,"cert,cwe,owasp-a3"
+squid:S2254,"""HttpServletRequest.getRequestedSessionId()"" should not be used",Vulnerability,Critical,"cwe,owasp-a2,sans-top25-porous"
+squid:S2257,Only standard cryptographic algorithms should be used,Vulnerability,Critical,"cwe,owasp-a3,sans-top25-porous"
+squid:S2277,Cryptographic RSA algorithms should always incorporate OAEP (Optimal Asymmetric Encryption Padding),Vulnerability,Critical,"cwe,owasp-a3,owasp-a6,sans-top25-porous"
+squid:S2653,"Web applications should not have a ""main"" method",Vulnerability,Critical,"cert,cwe,jee"
+squid:S2658,Classes should not be loaded dynamically,Vulnerability,Critical,"cwe,owasp-a1"
+squid:S2976,"""File.createTempFile"" should not be used to create a directory",Vulnerability,Critical,owasp-a9
+squid:S3355,Defined filters should be used,Vulnerability,Critical,"injection,owasp-a1"
+CQRules:CWE-134,Don't use format strings that may be externally-controlled,Vulnerability,Major,cqsecurity
+CQRules:CWE-676,Use of Potentially Dangerous Function,Vulnerability,Major,cqsecurity
+findbugs:PT_ABSOLUTE_PATH_TRAVERSAL,Security - Absolute path traversal in servlet,Vulnerability,Major,cwe
+findbugs:PT_RELATIVE_PATH_TRAVERSAL,Security - Relative path traversal in servlet,Vulnerability,Major,cwe
+findsecbugs:PATH_TRAVERSAL_IN,Security - Potential Path Traversal (file read),Vulnerability,Major,"cwe,owasp-a4,wasc"
+findsecbugs:PATH_TRAVERSAL_OUT,Security - Potential Path Traversal (file write),Vulnerability,Major,"cwe,owasp-a4,wasc"
+squid:ClassVariableVisibilityCheck,Class variable fields should not have public accessibility,Vulnerability,Minor,cwe
+squid:S1444,"""public static"" fields should be constant",Vulnerability,Minor,"cert,cwe"
+squid:S1989,Exceptions should not be thrown from servlet methods,Vulnerability,Minor,"cert,cwe,error-handling,owasp-a3"
+squid:S2092,"Cookies should be ""secure""",Vulnerability,Minor,"cwe,owasp-a2,owasp-a3"
+squid:S2384,Mutable members should not be stored or returned directly,Vulnerability,Minor,"cert,cwe,unpredictable"
+squid:S2386,"Mutable fields should not be ""public static""",Vulnerability,Minor,"cert,cwe,unpredictable"
+squid:S899,Return values should not be ignored when they contain the operation status code,Vulnerability,Minor,"cert,cwe,error-handling,misra"
+findsecbugs:FILE_UPLOAD_FILENAME,Security - Tainted filename read,Vulnerability,Info,"cwe,owasp-a4,wasc"
+squid:S2095,Resources should be closed,Bug,Blocker,"cert,cwe,denial-of-service,leak"
+squid:S2168,Double-checked locking should not be used,Bug,Blocker,"cert,cwe,multi-threading"
+squid:S2276,"""wait(...)"" should be used instead of ""Thread.sleep(...)"" when a lock is held",Bug,Blocker,"cert,multi-threading,performance"
+BannedPath,Customer packages should not install content under /libs,Bug,Blocker,
+AEM Rules:AEM-3,Non-thread safe object used as a field of Servlet / Filter etc.,Bug,Critical,aem
+CQRules:CQBP-84,Product interfaces annotated with @ProviderType should not be implemented by custom code.,Bug,Critical,cqsoftwarequality
+CQRules:ConnectionTimeoutMechanism,HttpClient instances should always have socket and connect timeouts,Bug,Critical,
+findbugs:BC_IMPOSSIBLE_CAST,Correctness - Impossible cast,Bug,Critical,correctness
+findbugs:BC_IMPOSSIBLE_DOWNCAST,Correctness - Impossible downcast,Bug,Critical,correctness
+squid:ObjectFinalizeOverridenCallsSuperFinalizeCheck,"""super.finalize()"" should be called at the end of ""Object.finalize()"" implementations",Bug,Critical,"cert,cwe"
+squid:S2222,Locks should be released,Bug,Critical,"cwe,multi-threading"
+squid:S3518,Zero should not be a possible denominator,Bug,Critical,"cert,cwe,denial-of-service"
+findbugs:EQ_ALWAYS_FALSE,Correctness - equals method always returns false,Bug,Major,correctness
+findbugs:EQ_ALWAYS_TRUE,Correctness - equals method always returns true,Bug,Major,correctness
+findbugs:IL_INFINITE_LOOP,Correctness - An apparent infinite loop,Bug,Major,correctness
+findbugs:IS2_INCONSISTENT_SYNC,Multi-threading - Inconsistent synchronization,Bug,Major,multi-threading
+findbugs:VO_VOLATILE_INCREMENT,Multi-threading - An increment to a volatile field isn't atomic,Bug,Major,multi-threading
+squid:ObjectFinalizeCheck,The Object.finalize() method should not be called,Bug,Major,"cert,cwe"
+squid:S1143,"Jump statements should not occur in ""finally"" blocks",Bug,Major,"cert,cwe,error-handling"
+squid:S1145,"Useless ""if(true) {...}"" and ""if(false){...}"" blocks should be removed",Bug,Major,"cwe,misra"
+squid:S1217,Thread.run() should not be called directly,Bug,Major,"cert,cwe,multi-threading"
+squid:S1850,"""instanceof"" operators that always return ""true"" or ""false"" should be removed",Bug,Major,
+squid:S1872,Classes should not be compared by name,Bug,Major,"cert,cwe"
+squid:S2142,"""InterruptedException"" should not be ignored",Bug,Major,"cwe,multi-threading"
+squid:S2159,Silly equality checks should not be made,Bug,Major,"cert,unused"
+squid:S2225,"""toString()"" and ""clone()"" methods should not return null",Bug,Major,"cert,cwe"
+squid:S2226,Servlets should not have mutable instance fields,Bug,Major,"cert,multi-threading,struts"
+squid:S2259,Null pointers should not be dereferenced,Bug,Major,"cert,cwe"
+squid:S2273,"""wait"", ""notify"" and ""notifyAll"" should only be called when a lock is obviously held on an object",Bug,Major,multi-threading
+squid:S2441,"Non-serializable objects should not be stored in ""HttpSession"" objects",Bug,Major,cwe
+squid:S2445,"Blocks should be synchronized on ""private final"" fields",Bug,Major,"cert,cwe,multi-threading"
+squid:S2583,Conditionally executed blocks should be reachable,Bug,Major,"cert,cwe,misra,pitfall,unused"
+squid:S2885,Non-thread-safe fields should not be static,Bug,Major,multi-threading
+squid:S3655,Optional value should only be accessed after calling isPresent(),Bug,Major,cwe
+DuplicateOsgiConfigurations,Customer packages should not contain overlapping OSGi configurations,Bug,Major,
+ConfigAndInstallShouldOnlyContainOsgiNodes,Paths with /config/ and /install/ should only be used for OSGi configuration and bundles,Bug,Major,
+PackageOverlaps,Customer packages should not overlap,Bug,Major,
+ClientlibProxyResource,Resources Contained in Proxy-Enabled Client Libraries Should Be in a folder named resources,Bug,Minor,aem
+squid:S1206,"""equals(Object obj)"" and ""hashCode()"" should be overridden in pairs",Bug,Minor,"cert,cwe"
+squid:S2184,Math operands should be cast before assignment,Bug,Minor,"cert,cwe,misra,overflow,sans-top25-risky"
+squid:S1147,Exit methods should not be called,Code Smell,Blocker,"cert,cwe,suspicious"
+squid:S128,"Switch cases should end with an unconditional ""break"" statement",Code Smell,Blocker,"cert,cwe,misra,suspicious"
+squid:S2178,Short-circuit logic should be used in boolean contexts,Code Smell,Blocker,cert
+AEM Rules:AEM-17,No mutator methods invoked on ModifiableValueMap,Code Smell,Critical,aem
+AEM Rules:AEM-6,ResourceResolver should be closed in finally block.,Code Smell,Critical,aem
+AEM Rules:AEM-7,Session should be logged out in finally block.,Code Smell,Critical,aem
+squid:S1174,"""Object.finalize()"" should remain protected (versus public) when overriding",Code Smell,Critical,"cert,cwe"
+squid:S1948,"Fields in a ""Serializable"" class should either be transient or serializable",Code Smell,Critical,"cwe,serialization"
+squid:S888,"Equality operators should not be used in ""for"" loop termination conditions",Code Smell,Critical,"cert,cwe,misra,suspicious"
+squid:SwitchLastCaseIsDefaultCheck,"""switch"" statements should end with ""default"" clauses",Code Smell,Critical,"cert,cwe,misra"
+AEM Rules:AEM-11,Do not use deprecated administrative access methods,Code Smell,Major,aem
+CQRules:CQBP-72,close() method is not called on ResourceResolver object,Code Smell,Major,cqjcr
+CQRules:CQBP-75,Do not use Sling servlet paths to register servlet,Code Smell,Major,cqsoftwarequality
+squid:AssignmentInSubExpressionCheck,Assignments should not be made from within sub-expressions,Code Smell,Major,"cert,cwe,misra,suspicious"
+squid:S00112,Generic exceptions should never be thrown,Code Smell,Major,"cert,cwe,error-handling"
+squid:S1134,"Track uses of ""FIXME"" tags",Code Smell,Major,cwe
+squid:S1181,Throwable and Error should not be caught,Code Smell,Major,"bad-practice,cert,cwe,error-handling"
+squid:S1696,"""NullPointerException"" should not be caught",Code Smell,Major,"cert,cwe,error-handling"
+squid:S1854,Dead stores should be removed,Code Smell,Major,"cert,cwe,unused"
+squid:S2112,"""URL.hashCode"" and ""URL.equals"" should be avoided",Code Smell,Major,performance
+squid:S2442,"""Lock"" objects should not be ""synchronized""",Code Smell,Major,"cert,clumsy,multi-threading"
+squid:S2681,Multiline blocks should be enclosed in curly braces,Code Smell,Major,"cert,cwe"
+squid:S864,Limited dependence should be placed on operator precedence,Code Smell,Major,"cert,cwe,misra"
+DOTRules:Disp-1---ignoreUrlParams-allow-list,The Dispatcher publish farm cache should have its ignoreUrlParams rules configured in an allow list manner.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-2---statfileslevel,The Dispatcher publish farm cache statfileslevel property should be >= 2.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-3---gracePeriod,The Dispatcher publish farm gracePeriod property should be >= 2.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-4---default-filter-deny-rules,The Dispatcher publish farm filters should contain the default `deny` rules from the 6.x.x version of the AEM archetype.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-5---serveStaleOnError,The Dispatcher publish farm cache should have serveStaleOnError enabled.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-6---suffix-allow-list,The Dispatcher publish farm filters should specify the allowed Sling suffix patterns in an allow list manner.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-7---selector-allow-list,The Dispatcher publish farm filters should specify the allowed Sling selectors in an allow list manner.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-8---unique-farm-name,Each Dispatcher farm should have a unique name.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Httpd-1---require-all-granted,The 'Require all granted' directive should not be used in a VirtualHost Directory section with a root directory-path.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Syntax0---syntax-violation,Syntax issue encountered.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S1---brace-missing,Each <section name> must begin with a '{' character.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S2---token-unexpected,"Skipping unknown top level token.  Token=""<misplaced token>""",Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S3---quote-unmatched,"Unmatched quote ("").  Line=""<line details>""",Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S4---brace-unclosed,Unclosed brace encountered.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S5---mandatory-missing,<section name> is missing mandatory '<property name>' value.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S6---property-deprecated,<property name> is deprecated.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Disp-S7---no-dispatcher-config,Could not find Dispatcher configuration file.,Code Smell,Major,"beta,dispatcher"
+DOTRules:Httpd-S1---include-failed,"Include directive must include existing files.  Check path, or use IncludeOptional.",Code Smell,Major,"beta,dispatcher"
+AEM Rules:AEM-1,Use predefined constant in annotation instead of hardcoded value.,Code Smell,Minor,aem
+AEM Rules:AEM-14,Using http literal hardcoded makes it difficult to switch to https later on.,Code Smell,Minor,aem
+AEM Rules:AEM-16,Optional is defined as DefaultInjectionStrategy,Code Smell,Minor,"aem,sling-models"
+AEM Rules:AEM-2,Use predefined constant instead of hardcoded value.,Code Smell,Minor,aem
+CQRules:CQBP-44---CatchAndEitherLogOrThrow,Catch and either log or throw the error. Do not do both,Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-44---ConsecutivelyLogAndThrow,Avoid having a log statement immediately followed by a throw statement,Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-44---ExceptionGetMessageIsFirstLogParam,Do not use Exception.getMessage() as the first parameter of the Logger.log statement,Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-44---ExceptionPrintStackTrace,Do not use Exception.printStackTrace() to print to console,Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-44---LogInfoInGetOrHeadRequests,Do not log with INFO level in GET or HEAD request handlers,Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-44---LowLevelConsolePrinters,Do not use low level console printers,Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-44---WrongLogLevelInCatchBlock,"In catch blocks, you should only log WARN or ERROR messages",Code Smell,Minor,cqsoftwarequality
+CQRules:CQBP-71,Do not hardcode paths using String literals,Code Smell,Minor,cqsoftwarequality
+squid:CallToDeprecatedMethod,"""@Deprecated"" code should not be used",Code Smell,Minor,"cert,cwe,obsolete"
+squid:S1182,"Classes that override ""clone"" should be ""Cloneable"" and call ""super.clone()""",Code Smell,Minor,"cert,convention,cwe"
+squid:S1698,"""=="" and ""!="" should not be used when ""equals"" is overridden",Code Smell,Minor,"cert,cwe,suspicious"
+squid:S2221,"""Exception"" should not be caught when not required by called methods",Code Smell,Minor,"cwe,error-handling"
+CQRules:AMSCORE-554,Sling Scheduler Should Not Be Used,Code Smell,Minor,"aem,cloud-service-compatibility"
+CQRules:AMSCORE-553,AEM Deprecated APIs Should Not Be Used,Code Smell,Minor,"aem,cloud-service-compatibility"
+ClassicUIAuthoringMode,Default Authoring Mode Should Not Be Classic UI,Code Smell,Minor,"aem,cloud-service-compatibility"
+ComponentWithOnlyClassicUIDialog,Components With Dialogs Should Have Touch UI Dialogs,Code Smell,Minor,"aem,cloud-service-compatibility"
+ImmutableMutableMixedPackage,Packages Should Not Mix Mutable and Immutable Content,Code Smell,Minor,"aem,cloud-service-compatibility"
+ReverseReplication,Reverse Replication Agents Should Not Be Used,Code Smell,Minor,"aem,cloud-service-compatibility"
+CloudServiceIncompatibleWorkflowProcess,Usage of Cloud Service Incompatible Workflow Processes,Code Smell,Minor,"aem,cloud-service-compatibility"
+StaticTemplateUsage,Usage of Static Templates is Discouraged in Favor of Editable Templates,Code Smell,Minor,"aem,cloud-service-compatibility"
+LegacyFoundationComponentUsage,Usage of Legacy Foundation Components is Discouraged,Code Smell,Minor,"aem,cloud-service-compatibility"
+SupportedRunmode,Only Supported Runmode Names and Ordering Should Be Used,Code Smell,Minor,"aem,cloud-service-compatibility"
+OakIndexLocation,Custom Search Index Definition Nodes Must Be Direct Children of /oak:index,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexCompatVersion,Custom Search Index Definition Nodes Must Have a compatVersion of 2,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexDescendantNodeType,Descendent Nodes of Custom Search Index Definition Nodes Must Be Of Type nt:unstructured,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexRulesNode,Custom Search Index Definition Nodes Must Contain a Child Node Named indexRules that Has Children,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexName,Custom Search Index Definition Nodes Must Follow Naming Conventions,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexType,Custom Search Index Definition Nodes Must Use the Index Type lucene,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexSeedProperty,Custom Search Index Definition Nodes Must Not Contain a Property Named seed,Code Smell,Minor,"aem,cloud-service-compatibility"
+IndexReindexProperty,Custom Search Index Definition Nodes Must Not Contain a Property Named reindex,Code Smell,Minor,"aem,cloud-service-compatibility"
+AEM Rules:AEM-15,Usage of 'synchronized' keyword should be avoided if possible.,Code Smell,Info,"multi-threading,performance"
+squid:S1135,"Track uses of ""TODO"" tags",Code Smell,Info,cwe

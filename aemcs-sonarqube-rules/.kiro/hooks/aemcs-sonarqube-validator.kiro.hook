@@ -1,0 +1,45 @@
+{
+  "enabled": true,
+  "name": "AEM Cloud Service - SonarQube Code Quality Validator",
+  "description": "Validates SonarQube code quality rules for AEM Cloud Service projects when files are edited, analyzing violations by severity and providing specific correction suggestions",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.java",
+      "**/*.xml", 
+      "**/*.html",
+      "**/*.js",
+      "**/*.ts",
+      "**/*.jsx",
+      "**/*.tsx",
+      "**/*.css",
+      "**/*.scss",
+      "**/*.less",
+      "**/*.json",
+      "**/*.cfg",
+      "**/*.config",
+      "**/*.conf",
+      "**/*.any",
+      "**/*.rules",
+      "**/*.vhost",
+      "**/*.txt",
+      "**/*.properties",
+      "**/*.jsp",
+      "**/*.jspx",
+      "**/*.tag",
+      "**/*.tagx",
+      "**/*.md",
+      "**/*.yml",
+      "**/*.yaml",
+      "**/*.MF",
+      "**/.gitignore",
+      "**/.babelrc",
+      "**/.eslintrc"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Analyze the modified file applying the SonarQube code quality rules for AEM Cloud Service defined in #[[file:.kiro/steering/aemcs-sonarqube-rules-en.md]].\n\n## Analysis Instructions\n\n1. **Identify the file type** and apply only relevant rules:\n   - `.java` → Java Rules (java:S*, AEM Rules:*, CQRules:*, findbugs:*)\n   - `.xml` → Package rules, Oak Index, AEM components\n   - `.any`, `.rules`, `.vhost`, `.conf` → Dispatcher Rules (DOTRules:*)\n   - `.js`, `.ts`, `.jsx`, `.tsx` → JavaScript/TypeScript best practices\n   - `.html`, `.jsp`, `.jspx` → Template and component rules\n\n2. **Prioritize by severity**:\n   - 🔴 **Blocker**: MUST be fixed immediately\n   - 🔴 **Critical**: MUST be fixed before deployment\n   - 🟠 **Major**: SHOULD be fixed\n   - 🟡 **Minor**: Consider fixing\n   - ⚪ **Info**: Informational\n\n3. **For each violation found, report**:\n   - Code line\n   - Violated rule (Key)\n   - Problem description\n   - Correction suggestion\n\n4. **Priority rules for Java**:\n   - `java:S2095` - Resources should be closed\n   - `AEM Rules:AEM-6` - ResourceResolver should be closed in finally block\n   - `AEM Rules:AEM-7` - Session should be logged out in finally block\n   - `AEM Rules:AEM-3` - Non-thread safe object used as field of Servlet/Filter\n   - `CQRules:ConnectionTimeoutMechanism` - HTTP requests should have timeouts\n   - `java:S2068` - Hard-coded passwords are security-sensitive\n\n5. **Priority rules for Dispatcher**:\n   - `DOTRules:Disp-2` - statfileslevel should be >= 2\n   - `DOTRules:Disp-4` - Default deny rules from archetype\n   - `DOTRules:Disp-5` - serveStaleOnError should be enabled\n\n6. **Cloud Service compatibility rules**:\n   - `BannedPath` - Customer packages should not install content under /libs\n   - `CloudServiceIncompatibleWorkflowProcess` - Usage of incompatible workflow processes\n   - `CQRules:AMSCORE-553` - AEM Deprecated APIs Should Not Be Used\n\n## Output Format\n\nIf violations are found:\n```\n## 🔍 Code Quality Analysis - AEM Cloud Service\n**File**: `{file_name}`\n**Violations found**: {number}\n\n### Violations\n#### 🔴 Blocker/Critical\n- **Line {X}**: `{code}`\n- **Rule**: {key}\n- **Issue**: {description}\n- **Fix**: {suggestion}\n\n#### 🟠 Major\n...\n\n#### 🟡 Minor\n...\n\n### Summary\n- Blocker: X\n- Critical: X\n- Major: X\n- Minor: X\n```\n\nIf no violations are found:\n```\n## ✅ Code Quality Analysis - AEM Cloud Service\n**File**: `{file_name}`\nNo SonarQube rule violations were found. The code complies with AEM Cloud Service quality guidelines.\n```"
+  }
+}

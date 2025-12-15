@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "aem-documentation-mcp-server": {
+      "command": "docker",
+      "args": ["run", "--rm", "-i", "aem-docs-mcp-server:latest"],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "search_experience_league",
+        "read_documentation",
+        "get_available_services"
+      ]
+    }
+  }
+}
