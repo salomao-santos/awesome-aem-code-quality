@@ -474,16 +474,21 @@ sonar.exclusions=**/target/**,**/node_modules/**
 - [ ] Regras Java adicionais escritas no arquivo
 - [ ] Migrações Java documentadas (squid:* → java:*)
 
-### VALIDAÇÃO FINAL:
+### VALIDAÇÃO E CÓPIA FINAL:
 - [ ] Arquivo Java criado: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md`
 - [ ] Arquivo tem >1000 linhas
 - [ ] Apenas regras Java incluídas (filtro rigoroso aplicado)
 - [ ] Estatísticas Java corretas e detalhadas
-- [ ] Exemplos de código AEM-específicos incluídos
+- [ ] Exemplos de código AEM-específicos incluídos (>15 exemplos)
 - [ ] Migrações squid:* → java:* documentadas
 - [ ] Seções organizadas por categoria (Vulnerabilities, Bugs, Code Smells, etc.)
 - [ ] Contexto AEM/OSGi/Sling adicionado para cada regra
 - [ ] Guia de implementação incluído
+- [ ] **VALIDAÇÃO AUTOMÁTICA EXECUTADA** (script de validação completo)
+- [ ] **VALIDAÇÃO PASSOU** (todos os critérios de qualidade atendidos)
+- [ ] **ARQUIVO COPIADO PARA STEERING** (`.kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md`)
+- [ ] **CÓPIA VERIFICADA** (integridade e tamanho confirmados)
+- [ ] **DISPONÍVEL NO CONTEXTO KIRO** (steering rules ativas para uso)
 
 ---
 
@@ -504,68 +509,175 @@ sonar.exclusions=**/target/**,**/node_modules/**
 
 ---
 
-## 🔐 VALIDAÇÃO FINAL JAVA
+## 🔐 VALIDAÇÃO E CÓPIA AUTOMÁTICA
 
-### 🚨 VALIDAÇÃO OBRIGATÓRIA:
+### 🚨 VALIDAÇÃO OBRIGATÓRIA + CÓPIA PARA STEERING:
+
+**APÓS GERAR O ARQUIVO COMPLETO, VOCÊ DEVE:**
+
+1. ✅ **VALIDAR** o arquivo gerado
+2. ✅ **COPIAR** para pasta de steering se validação passou
+3. ✅ **REPORTAR** resultado final
+
+### PROCESSO DE VALIDAÇÃO E CÓPIA:
+
+```markdown
+# ETAPA 1: VALIDAÇÃO AUTOMÁTICA
+Executar validações do arquivo gerado:
+- Verificar existência e tamanho (>1000 linhas)
+- Verificar conteúdo Java (regras java:S*, AEM Rules:*, etc.)
+- Verificar estrutura (seções organizadas)
+- Verificar filtro rigoroso (sem regras não-Java)
+- Verificar exemplos de código (>15 exemplos)
+
+# ETAPA 2: CÓPIA PARA STEERING (SE VALIDAÇÃO PASSOU)
+Copiar arquivo para pasta de steering:
+- Origem: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md
+- Destino: .kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md
+
+# ETAPA 3: CONFIRMAÇÃO FINAL
+Confirmar que arquivo foi copiado e está disponível para contexto do Kiro
+```
+
+### SCRIPT DE VALIDAÇÃO E CÓPIA:
 
 ```bash
-# Executar antes de finalizar
+#!/bin/bash
+echo "=== VALIDAÇÃO E CÓPIA ARQUIVO JAVA BACKEND ==="
 
-echo "=== VALIDAÇÃO ARQUIVO JAVA BACKEND ==="
+# 1. Definir arquivos
+SOURCE_FILE="output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md"
+TARGET_STEERING=".kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md"
 
-# 1. Verificar arquivo existe
-TARGET_FILE="output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md"
-if [ -f "$TARGET_FILE" ]; then
-    echo "✅ Arquivo Java Backend existe"
-else
-    echo "❌ FALHA: Arquivo Java Backend não existe"
+# 2. Verificar arquivo fonte existe
+if [ ! -f "$SOURCE_FILE" ]; then
+    echo "❌ FALHA CRÍTICA: Arquivo fonte não existe: $SOURCE_FILE"
     exit 1
 fi
+echo "✅ Arquivo fonte existe: $SOURCE_FILE"
 
-# 2. Verificar tamanho mínimo
-JAVA_LINES=$(wc -l < "$TARGET_FILE")
-echo "Arquivo Java Backend: $JAVA_LINES linhas"
-[ "$JAVA_LINES" -gt 1000 ] && echo "✅ Tamanho OK (>1000 linhas)" || echo "❌ FALHA: <1000 linhas"
+# 3. Verificar tamanho mínimo
+JAVA_LINES=$(wc -l < "$SOURCE_FILE")
+echo "📊 Arquivo Java Backend: $JAVA_LINES linhas"
+if [ "$JAVA_LINES" -lt 1000 ]; then
+    echo "❌ FALHA: Arquivo muito pequeno (<1000 linhas)"
+    exit 1
+fi
+echo "✅ Tamanho OK: $JAVA_LINES linhas (>1000)"
 
-# 3. Verificar conteúdo Java
+# 4. Verificar conteúdo Java obrigatório
 echo "=== VERIFICAÇÃO DE CONTEÚDO JAVA ==="
-grep -c "java:S" "$TARGET_FILE" && echo "✅ Regras java:S* encontradas"
-grep -c "AEM Rules:" "$TARGET_FILE" && echo "✅ Regras AEM Rules:* encontradas"
-grep -c "CQRules:" "$TARGET_FILE" && echo "✅ Regras CQRules:* encontradas"
-grep -c "findbugs:" "$TARGET_FILE" && echo "✅ Regras findbugs:* encontradas"
+JAVA_S_COUNT=$(grep -c "java:S" "$SOURCE_FILE" || echo "0")
+AEM_RULES_COUNT=$(grep -c "AEM Rules:" "$SOURCE_FILE" || echo "0")
+CQ_RULES_COUNT=$(grep -c "CQRules:" "$SOURCE_FILE" || echo "0")
+FINDBUGS_COUNT=$(grep -c "findbugs:" "$SOURCE_FILE" || echo "0")
 
-# 4. Verificar estrutura e organização
+echo "📈 Regras java:S*: $JAVA_S_COUNT"
+echo "📈 Regras AEM Rules:*: $AEM_RULES_COUNT"
+echo "📈 Regras CQRules:*: $CQ_RULES_COUNT"
+echo "📈 Regras findbugs:*: $FINDBUGS_COUNT"
+
+TOTAL_JAVA_RULES=$((JAVA_S_COUNT + AEM_RULES_COUNT + CQ_RULES_COUNT + FINDBUGS_COUNT))
+if [ "$TOTAL_JAVA_RULES" -lt 50 ]; then
+    echo "❌ FALHA: Poucas regras Java encontradas ($TOTAL_JAVA_RULES < 50)"
+    exit 1
+fi
+echo "✅ Regras Java suficientes: $TOTAL_JAVA_RULES regras"
+
+# 5. Verificar estrutura obrigatória
 echo "=== VERIFICAÇÃO DE ESTRUTURA ==="
-grep -c "## 🔴 Vulnerabilidades Java" "$TARGET_FILE" && echo "✅ Seção Vulnerabilidades encontrada"
-grep -c "## 🔵 Bugs Java" "$TARGET_FILE" && echo "✅ Seção Bugs encontrada"
-grep -c "## 🟡 Code Smells Java" "$TARGET_FILE" && echo "✅ Seção Code Smells encontrada"
-grep -c "AEM Context" "$TARGET_FILE" && echo "✅ Contexto AEM encontrado"
+VULNERABILITIES=$(grep -c "## 🔴 Vulnerabilidades Java\|## 🔴 Vulnerabilities Java" "$SOURCE_FILE" || echo "0")
+BUGS=$(grep -c "## 🔵 Bugs Java\|## 🔵 Java Bugs" "$SOURCE_FILE" || echo "0")
+CODE_SMELLS=$(grep -c "## 🟡 Code Smells Java\|## 🟡 Java Code Smells" "$SOURCE_FILE" || echo "0")
+AEM_CONTEXT=$(grep -c "AEM Context\|**AEM Context**" "$SOURCE_FILE" || echo "0")
 
-# 5. Verificar que NÃO tem regras de outras categorias
+[ "$VULNERABILITIES" -gt 0 ] && echo "✅ Seção Vulnerabilidades encontrada" || echo "⚠️ Seção Vulnerabilidades não encontrada"
+[ "$BUGS" -gt 0 ] && echo "✅ Seção Bugs encontrada" || echo "⚠️ Seção Bugs não encontrada"
+[ "$CODE_SMELLS" -gt 0 ] && echo "✅ Seção Code Smells encontrada" || echo "⚠️ Seção Code Smells não encontrada"
+[ "$AEM_CONTEXT" -gt 5 ] && echo "✅ Contexto AEM encontrado ($AEM_CONTEXT ocorrências)" || echo "⚠️ Pouco contexto AEM ($AEM_CONTEXT ocorrências)"
+
+# 6. Verificar filtro rigoroso (NÃO deve ter regras não-Java)
 echo "=== VERIFICAÇÃO DE FILTRO RIGOROSO ==="
-if grep -q "DOTRules:" "$TARGET_FILE"; then
-    echo "❌ FALHA: Contém regras Dispatcher (DOTRules:*)"
+VALIDATION_PASSED=true
+
+if grep -q "DOTRules:" "$SOURCE_FILE"; then
+    echo "❌ FALHA: Contém regras Dispatcher (DOTRules:*) - FILTRO FALHOU"
+    VALIDATION_PASSED=false
 else
     echo "✅ Filtro OK: Sem regras Dispatcher"
 fi
 
-if grep -q "ClassicUI" "$TARGET_FILE"; then
-    echo "❌ FALHA: Contém regras Frontend (ClassicUI*)"
+if grep -q "ClassicUI\|ComponentUI" "$SOURCE_FILE"; then
+    echo "❌ FALHA: Contém regras Frontend (ClassicUI*/ComponentUI*) - FILTRO FALHOU"
+    VALIDATION_PASSED=false
 else
     echo "✅ Filtro OK: Sem regras Frontend"
 fi
 
-if grep -q "BannedPath\|PackageOverlaps\|ClientlibProxy" "$TARGET_FILE"; then
-    echo "❌ FALHA: Contém regras de Pacote/UI"
+if grep -q "BannedPath\|PackageOverlaps\|ClientlibProxy\|OakIndex\|Index.*Rules" "$SOURCE_FILE"; then
+    echo "❌ FALHA: Contém regras de Pacote/UI/Index - FILTRO FALHOU"
+    VALIDATION_PASSED=false
 else
-    echo "✅ Filtro OK: Sem regras de Pacote/UI"
+    echo "✅ Filtro OK: Sem regras de Pacote/UI/Index"
 fi
 
-# 6. Verificar exemplos de código
+# 7. Verificar exemplos de código
 echo "=== VERIFICAÇÃO DE EXEMPLOS ==="
-CODE_EXAMPLES=$(grep -c "```java" "$TARGET_FILE")
-echo "Exemplos de código Java: $CODE_EXAMPLES"
-[ "$CODE_EXAMPLES" -gt 15 ] && echo "✅ Exemplos suficientes" || echo "⚠️ Poucos exemplos de código"
+CODE_EXAMPLES=$(grep -c "```java" "$SOURCE_FILE" || echo "0")
+echo "📝 Exemplos de código Java: $CODE_EXAMPLES"
+if [ "$CODE_EXAMPLES" -lt 15 ]; then
+    echo "⚠️ Poucos exemplos de código ($CODE_EXAMPLES < 15)"
+else
+    echo "✅ Exemplos suficientes: $CODE_EXAMPLES exemplos"
+fi
+
+# 8. DECISÃO DE CÓPIA
+if [ "$VALIDATION_PASSED" = true ]; then
+    echo ""
+    echo "🎉 VALIDAÇÃO PASSOU - COPIANDO PARA STEERING"
+    
+    # Criar pasta steering se não existir
+    mkdir -p ".kiro/steering"
+    
+    # Copiar arquivo
+    cp "$SOURCE_FILE" "$TARGET_STEERING"
+    
+    if [ -f "$TARGET_STEERING" ]; then
+        echo "✅ SUCESSO: Arquivo copiado para steering"
+        echo "📁 Destino: $TARGET_STEERING"
+        
+        # Verificar tamanho do arquivo copiado
+        STEERING_LINES=$(wc -l < "$TARGET_STEERING")
+        echo "📊 Arquivo steering: $STEERING_LINES linhas"
+        
+        if [ "$STEERING_LINES" -eq "$JAVA_LINES" ]; then
+            echo "✅ CÓPIA VERIFICADA: Tamanhos coincidem"
+        else
+            echo "⚠️ AVISO: Tamanhos diferentes (origem: $JAVA_LINES, destino: $STEERING_LINES)"
+        fi
+        
+        echo ""
+        echo "🎯 RESULTADO FINAL: SUCESSO COMPLETO"
+        echo "✅ Arquivo validado e copiado para steering"
+        echo "✅ Regras Java Backend disponíveis no contexto do Kiro"
+        echo "✅ Total de regras: $TOTAL_JAVA_RULES"
+        echo "✅ Total de linhas: $JAVA_LINES"
+        echo "✅ Exemplos de código: $CODE_EXAMPLES"
+        
+    else
+        echo "❌ FALHA NA CÓPIA: Arquivo não foi copiado para steering"
+        exit 1
+    fi
+    
+else
+    echo ""
+    echo "❌ VALIDAÇÃO FALHOU - NÃO COPIANDO PARA STEERING"
+    echo "🔧 AÇÕES NECESSÁRIAS:"
+    echo "   - Corrigir problemas de filtro identificados"
+    echo "   - Remover regras não-Java do arquivo"
+    echo "   - Executar validação novamente"
+    exit 1
+fi
 ```
 
 ### ✅ CRITÉRIOS DE SUCESSO:
@@ -598,7 +710,7 @@ echo "Exemplos de código Java: $CODE_EXAMPLES"
 **AO FINALIZAR, REPORTAR:**
 
 ```
-=== RELATÓRIO JAVA BACKEND RULES ===
+=== RELATÓRIO COMPLETO JAVA BACKEND RULES ===
 
 FASE 1 - MCP com Filtro Java:
 ✅ Partes lidas: [X] partes
@@ -611,15 +723,22 @@ FASE 2 - CSV com Filtro Java:
 ✅ Regras Java novas (não no MCP): [X] regras
 ✅ Migrações Java identificadas: [X] migrações
 
+FASE 3 - VALIDAÇÃO E CÓPIA:
+✅ Validação executada: [PASSOU/FALHOU]
+✅ Critérios atendidos: [X]/[Y] critérios
+✅ Arquivo copiado para steering: [SIM/NÃO]
+✅ Integridade verificada: [SIM/NÃO]
+
 RESULTADO FINAL:
-✅ Arquivo: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md
+✅ Arquivo origem: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md
+✅ Arquivo steering: .kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md
 ✅ Linhas: [X] linhas (>1000)
 ✅ Regras Java: [X] regras
 ✅ Vulnerabilidades: [X] regras
 ✅ Bugs: [X] regras  
 ✅ Code Smells: [X] regras
 ✅ Migrações: [X] migrações
-✅ Exemplos AEM: [X] exemplos
+✅ Exemplos AEM: [X] exemplos (>15)
 ✅ Seções organizadas: [X] seções
 ✅ Contexto AEM: 100% das regras
 
@@ -628,7 +747,99 @@ FILTRO RIGOROSO APLICADO:
 ✅ Excluídas: DOTRules:*, ClassicUI*, BannedPath, PackageOverlaps, Index*, Config*, etc.
 ✅ Foco: Java Backend, OSGi, Sling, JCR, Security, Threading
 
-STATUS: [SUCESSO/FALHA]
+DISPONIBILIDADE NO KIRO:
+✅ Steering rules ativas: [SIM/NÃO]
+✅ Contexto disponível: [SIM/NÃO]
+✅ Pronto para uso: [SIM/NÃO]
+
+STATUS FINAL: [SUCESSO COMPLETO/SUCESSO PARCIAL/FALHA]
+
+PRÓXIMOS PASSOS:
+- Se SUCESSO COMPLETO: Regras disponíveis no contexto do Kiro
+- Se SUCESSO PARCIAL: Verificar problemas na cópia
+- Se FALHA: Corrigir problemas e executar novamente
+```
+
+---
+
+## 🔄 PROCESSO AUTOMÁTICO DE VALIDAÇÃO E CÓPIA
+
+### FLUXO COMPLETO DO PROMPT:
+
+```mermaid
+graph TD
+    A[Início do Prompt] --> B[Fase 1: Leitura MCP com Filtro Java]
+    B --> C[Fase 2: Comparação CSV com Filtro Java]
+    C --> D[Gerar Arquivo Completo]
+    D --> E[Validação Automática]
+    E --> F{Validação Passou?}
+    F -->|Sim| G[Copiar para Steering]
+    F -->|Não| H[Reportar Falhas]
+    G --> I[Confirmação Final]
+    H --> J[Solicitar Correções]
+    I --> K[Sucesso Completo]
+    J --> D
+```
+
+### ETAPAS OBRIGATÓRIAS APÓS GERAÇÃO:
+
+1. **VALIDAÇÃO AUTOMÁTICA** (obrigatória):
+   - Verificar arquivo existe e tem >1000 linhas
+   - Verificar conteúdo Java (>50 regras java:S*, AEM Rules:*, etc.)
+   - Verificar estrutura (seções organizadas)
+   - Verificar filtro rigoroso (sem DOTRules:*, ClassicUI*, etc.)
+   - Verificar exemplos de código (>15 exemplos)
+
+2. **CÓPIA PARA STEERING** (se validação passou):
+   - Origem: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md`
+   - Destino: `.kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md`
+   - Verificar integridade da cópia
+
+3. **CONFIRMAÇÃO FINAL** (obrigatória):
+   - Reportar resultado da validação
+   - Confirmar cópia para steering
+   - Fornecer estatísticas finais
+
+### CRITÉRIOS DE SUCESSO PARA CÓPIA:
+
+| Critério | Mínimo | Status |
+|----------|--------|--------|
+| **Tamanho do arquivo** | >1000 linhas | Obrigatório |
+| **Regras Java** | >50 regras | Obrigatório |
+| **Filtro rigoroso** | 0 regras não-Java | Obrigatório |
+| **Estrutura** | Seções organizadas | Obrigatório |
+| **Exemplos código** | >15 exemplos | Recomendado |
+| **Contexto AEM** | >5 ocorrências | Recomendado |
+
+### AÇÕES EM CASO DE FALHA NA VALIDAÇÃO:
+
+```markdown
+SE VALIDAÇÃO FALHAR:
+1. NÃO copiar para steering
+2. Identificar problemas específicos
+3. Corrigir arquivo fonte
+4. Executar validação novamente
+5. Só copiar após validação passar
+
+PROBLEMAS COMUNS:
+- Arquivo muito pequeno (<1000 linhas)
+- Poucas regras Java (<50 regras)
+- Filtro falhou (contém regras não-Java)
+- Estrutura desorganizada
+- Poucos exemplos de código
+```
+
+### RESULTADO ESPERADO FINAL:
+
+```
+✅ SUCESSO COMPLETO:
+- Arquivo gerado: output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md
+- Arquivo copiado: .kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md
+- Validação: PASSOU
+- Regras Java: [X] regras
+- Linhas: [X] linhas (>1000)
+- Exemplos: [X] exemplos (>15)
+- Status: DISPONÍVEL NO CONTEXTO KIRO
 ```
 
 ---
@@ -691,3 +902,49 @@ O prompt melhorado deve gerar um documento técnico de alta qualidade com:
 - **Validação rigorosa** de qualidade e completude
 
 Este documento será uma referência técnica completa para desenvolvedores Java trabalhando com AEM Cloud Service.
+
+---
+
+## 🚀 INSTRUÇÕES FINAIS DE EXECUÇÃO
+
+### SEQUÊNCIA OBRIGATÓRIA DE AÇÕES:
+
+1. **GERAR ARQUIVO COMPLETO** 
+   - Executar Fase 1 (MCP) + Fase 2 (CSV)
+   - Criar arquivo: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md`
+
+2. **EXECUTAR VALIDAÇÃO AUTOMÁTICA**
+   - Rodar script de validação completo
+   - Verificar todos os critérios de qualidade
+   - Confirmar que filtro rigoroso foi aplicado
+
+3. **COPIAR PARA STEERING (SE VALIDAÇÃO PASSOU)**
+   - Copiar de: `output-aemcs-sonarqube-rules/output-aemcs-sonarqube-java-backend-rules-ptbr.md`
+   - Copiar para: `.kiro/steering/output-aemcs-sonarqube-java-backend-rules-ptbr.md`
+   - Verificar integridade da cópia
+
+4. **REPORTAR RESULTADO FINAL**
+   - Fornecer relatório completo com estatísticas
+   - Confirmar disponibilidade no contexto Kiro
+   - Indicar status final (SUCESSO/FALHA)
+
+### ⚠️ IMPORTANTE: NÃO PULAR ETAPAS
+
+- ❌ **NÃO** copiar arquivo sem validação
+- ❌ **NÃO** finalizar sem confirmar cópia
+- ❌ **NÃO** reportar sucesso se validação falhou
+- ✅ **SEMPRE** executar validação antes da cópia
+- ✅ **SEMPRE** verificar integridade após cópia
+- ✅ **SEMPRE** confirmar disponibilidade no Kiro
+
+### 🎯 CRITÉRIO DE SUCESSO FINAL:
+
+**O prompt só é considerado SUCESSO COMPLETO quando:**
+- ✅ Arquivo gerado com >1000 linhas
+- ✅ Validação passou em todos os critérios
+- ✅ Arquivo copiado para `.kiro/steering/`
+- ✅ Cópia verificada e íntegra
+- ✅ Regras disponíveis no contexto Kiro
+- ✅ Relatório final fornecido
+
+**Qualquer falha em uma dessas etapas = FALHA DO PROMPT**
